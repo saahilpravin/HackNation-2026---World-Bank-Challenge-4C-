@@ -1,32 +1,26 @@
 # Three-person build split
 
-| Owner | Files | Next work |
-| --- | --- | --- |
-| AI / models | `src/ai/`, model assets, evaluation scripts | Replace `demoAI` behind `AIProvider`; choose a small model, integrate inference in a development build, evaluate the ten supported translation languages, low-confidence handling, measured latency and accuracy on target hardware. |
-| UI / experience | `src/app/`, `src/components/` | Test physical phones, localize actual interface strings, improve keyboard and accessibility behavior, add new message/booking forms, validate tour times against structured business availability. |
-| Offline / data | `src/data/`, `src/state/` | Split the versioned SQLite JSON snapshot into migrated relational tables, add import/export and deletion, storage/model management, tested messaging transport and retry queue. Never send a reply without explicit approval. |
+| Owner | Work |
+| --- | --- |
+| AI / models | Implement the assistant contract, evaluate response quality and evidence citations, provide model artifacts/runtime requirements. See AI-INTEGRATION.md. |
+| UI / experience | Verify physical iPhone layouts, keyboard behavior, translated review reading, draft/approval flow, booking entry and accessibility. Localize interface strings if needed. |
+| Offline / data | Implement operator platform imports/exports, storage migration, model packaging, and physical airplane-mode checks. Do not add a customer inbox or automatic reply sending. |
 
-Agree on `src/data/types.ts` and `src/ai/provider.ts` before parallel edits. Use separate feature branches and small pull requests. Avoid editing another owner's files without coordination.
+## Current demo
 
-## Demo walkthrough
-1. Complete business setup. Profile saves locally; no login.
-2. Home → Messages → Camille. Read original French, labelled example translation and booking fields.
-3. Edit reply → Approve & queue locally. It persists; it is not sent.
-4. Bookings → Camille → Confirm. Capacity validation runs before saving.
-5. Insights → Reviews → filter Needs reply and French → select a review → switch reading language → write and translate a response → approve locally.
-6. Ideas lab → choose an experiment → read supporting reviews and the proposed validation plan.
-6. Offline & AI reports actual device connection, local queue, and no installed model.
-7. Restart app / enable airplane mode after initial loading: profile and edits remain.
+1. Choose Noor's demo workspace during onboarding.
+2. Home → Reviews → Needs reply → French → choose a review.
+3. Choose a reading language, check original text, write a response and save a draft.
+4. Reopen the review: the draft persists. Translate custom text through the paired NLLB laptop; review the result and approve locally.
+5. Bookings → Record a booking received elsewhere. Confirm/edit it; capacity is checked per date/time slot.
+6. Insights → Overview → supporting evidence; Ideas lab → experiment and a way to test it.
+7. Offline & AI explains what runs locally and what still needs a connected laptop.
+8. Restart the app and check saved drafts, approvals and bookings. Test airplane mode on the physical phone after installation.
 
-## AI integrity
-Seeded messages/reviews/bookings carry `demo: true`. Scripted analysis uses `source: demo-fixture`, null confidence, latency, and model version. Do not call this trained AI or report fixture results as model accuracy. Model adapters must record measured output provenance, language support and failures. Review themes are manually assigned. UI language selection records a preference; interface localization remains to be implemented.
+## Provenance and remaining work
 
-## Data limitations
-Native SQLite stores a versioned whole-app snapshot; writes are serialized and only update UI after persistence succeeds. Web preview uses localStorage without silently falling back to memory. No network inbox, send transport, cloud sync, authentication or on-device model inference exists yet. NLLB translation is connected to a local laptop service; sample language versions are bundled for offline reading. Capacity checks cover confirmed guests per date/time, not overlapping tour intervals. Device performance and translation quality still need measurement; do not present the laptop bridge as phone inference.
+150 synthetic reviews are language variants of 15 authored scenarios, not 150 independent customers. Forty contain labeled example responses. Samples and actual records remain separate. Existing approvals and records are preserved.
 
-## Feedback studio demo (October 3)
-150 synthetic review records across ten languages, created from 15 authored scenarios. These are repeated scenarios in language variants, not 150 independent customer observations. Forty records contain labeled example responses. Existing local approvals take precedence and survive the demo migration.
+NLLB performs real laptop translation; bundled sample translations are unreviewed machine outputs. Suggested replies are authored examples until the teammate's model is integrated. Insights are local English keyword rules; nine ideas are curated examples matched to review themes. A model does not currently generate them.
 
-Feedback findings use explainable rules on English scenario text; nine curated experiments link to manually tagged review themes. NLLB translates language variants but does not generate the insights or example replies. A real review-analysis SLM remains the AI teammate's next task. Keep source IDs and evidence citations in that adapter.
-
-Operator reviews are imported; the tourist-facing Leave a review form has been removed. Platform import and external reply delivery remain future data work.
+Native data is stored as a serialized SQLite snapshot, web data in localStorage. No customer inbox, live platform import, external posting, cloud sync or phone-local model is connected. Legacy message code remains outside the route tree for reference; old message URLs redirect to Reviews.

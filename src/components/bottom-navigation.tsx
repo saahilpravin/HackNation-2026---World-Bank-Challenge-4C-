@@ -6,12 +6,7 @@ import { useStore } from "../state/store";
 import { colors } from "./theme";
 const tabs = [
   { label: "Home", href: "/", icon: "home-outline", activeIcon: "home" },
-  {
-    label: "Messages",
-    href: "/messages",
-    icon: "chatbubble-ellipses-outline",
-    activeIcon: "chatbubble-ellipses",
-  },
+  { label: "Reviews", href: "/reviews", icon: "chatbox-ellipses-outline", activeIcon: "chatbox-ellipses" },
   {
     label: "Bookings",
     href: "/bookings",
@@ -29,7 +24,7 @@ export function BottomNavigation() {
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
   const { data } = useStore();
-  const unread = data?.messages.filter((m) => m.unread).length ?? 0;
+  const unanswered = data?.reviews.filter(r => !r.exampleResponse && !data?.reviewReplies?.some(reply => reply.reviewId === r.id)).length ?? 0;
   return (
     <View
       style={[styles.shell, { paddingBottom: Math.max(insets.bottom, 10) }]}
@@ -43,7 +38,7 @@ export function BottomNavigation() {
           const selected =
             tab.href === "/"
               ? pathname === "/"
-              : pathname === tab.href || pathname.startsWith(`${tab.href}/`) || (tab.href === "/insights" && (pathname.startsWith("/reviews/") || pathname.startsWith("/ideas/")));
+              : pathname === tab.href || pathname.startsWith(`${tab.href}/`) || (tab.href === "/insights" && pathname.startsWith("/ideas/"));
           return (
             <Pressable
               key={tab.href}
@@ -67,10 +62,10 @@ export function BottomNavigation() {
                   size={24}
                   color={selected ? colors.accent : colors.muted}
                 />
-                {tab.label === "Messages" && unread > 0 && (
+                {tab.label === "Reviews" && unanswered > 0 && (
                   <View style={styles.count}>
                     <Text style={styles.countText}>
-                      {unread > 9 ? "9+" : unread}
+                      {unanswered > 99 ? "99+" : unanswered}
                     </Text>
                   </View>
                 )}

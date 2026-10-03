@@ -30,3 +30,11 @@ Reduced dashboard text and removed the promotional hero. Added a persistent four
 - Physical iPhone verification of this refresh remains necessary.
 
 - UI custom English → French NLLB translation succeeded (9.1 s); local approval persisted, and editing the draft cleared translation and disabled re-approval.
+
+## Operator-focused refresh
+- Messages tab and customer-message links removed; legacy URLs redirect to Reviews. Legacy source remains outside the route tree for reference.
+- Dedicated Reviews tab, compact language selectors, saved drafts, manual booking entry and refreshed Home/Bookings/Profile/Offline screens.
+- Inactive pages stop rendering their accessible content, avoiding duplicate hidden navigation controls.
+- 24 automated app tests pass, covering manual booking creation, capacity rejection, assistant evidence/provenance validation and no-network authored examples. TypeScript and Expo lint pass. Web/iOS/Android exports succeed.
+- Browser QA verifies a review draft survives reload and that compact selectors retain language choice. Physical iPhone testing of this revision remains outstanding.
+- Prepared 200 real Yelp review records for LOCAL evaluation; not bundled, committed, or presented as Noor's reviews.

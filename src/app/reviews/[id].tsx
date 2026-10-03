@@ -1,3 +1,5 @@
+import { suggestReviewResponse } from "../../ai/review-assistant";
+import type { AssistantOutput } from "../../ai/assistant-contract";
 import { Avatar, LanguagePicker, Stars } from "../../components/studio";
 import { Platform, View } from "react-native";
 import { translateOnLaptop } from "../../ai/laptop-translation";
@@ -18,6 +20,7 @@ function ReplyForm() {
   const { data, update, translationToken } = useStore();
   const review = data?.reviews.find(r => r.id === id);
   const saved = data?.reviewReplies?.find(r => r.reviewId === id);
+  const savedDraft = data?.reviewDrafts?.find(r => r.reviewId === id);
   const validLanguage = (l?: string): ReplyLanguage => replyLanguages.find(v => v === l) ?? "English";
   const [readingLanguage, setReadingLanguage] = useState<ReplyLanguage>(validLanguage(data?.profile?.language));
   const [showOriginal, setShowOriginal] = useState(false);
@@ -35,25 +38,27 @@ function ReplyForm() {
     } catch(e) { if (version === readingRevision.current) setReadingStatus(e instanceof Error ? e.message : "Translation unavailable."); }
     finally { setReadingBusy(false); }
   };
-  const [from, setFrom] = useState<ReplyLanguage>(validLanguage(saved?.writingLanguage ?? data?.profile?.language));
-  const [to, setTo] = useState<ReplyLanguage>(validLanguage(saved?.customerLanguage ?? review?.language));
-  const [draft, setDraft] = useState(saved?.draft ?? "");
+  const [from, setFrom] = useState<ReplyLanguage>(validLanguage(savedDraft?.writingLanguage ?? saved?.writingLanguage ?? data?.profile?.language));
+  const [to, setTo] = useState<ReplyLanguage>(validLanguage(savedDraft?.customerLanguage ?? saved?.customerLanguage ?? review?.language));
+  const [draft, setDraft] = useState(savedDraft?.draft ?? saved?.draft ?? "");
   const [example, setExample] = useState("");
-  const [translated, setTranslated] = useState(saved?.translatedText ?? "");
+  const [exampleInfo, setExampleInfo] = useState<AssistantOutput | null>(null);
+  const [translated, setTranslated] = useState(savedDraft ? "" : saved?.translatedText ?? "");
   const [source, setSource] = useState<"manual" | "local-template" | "on-device-model" | "local-laptop-model">(saved?.source ?? "manual");
   const [modelVersion, setModelVersion] = useState<string | null>(saved?.modelVersion ?? null);
   const [latencyMs, setLatencyMs] = useState<number | undefined>(saved?.latencyMs);
   const [translating, setTranslating] = useState(false);
-  const [key, setKey] = useState(saved ? replyKey(saved.draft, saved.writingLanguage, saved.customerLanguage) : "");
+  const [key, setKey] = useState(saved && !savedDraft ? replyKey(saved.draft, saved.writingLanguage, saved.customerLanguage) : "");
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
   const revision = useRef(0);
   const invalidate = () => { revision.current++; setTranslated(""); setKey(""); setStatus(""); setModelVersion(null); setLatencyMs(undefined); };
   const suggest = async () => {
-    if (!review) return;
-    const version = revision.current;
-    const output = await templateReplies.suggest(review, from);
-    if (version === revision.current) setExample(output.text);
+    if (!review || !data?.profile || busy) return;
+    const version = revision.current; setBusy(true);
+    try { const output = await suggestReviewResponse(review, data.profile, from); if (version === revision.current) { setExample(output.text); setExampleInfo(output); } }
+    catch(e) { if (version === revision.current) setStatus(e instanceof Error ? e.message : "Assistant unavailable. You can still write your response."); }
+    finally { setBusy(false); }
   };
   const translate = async () => {
     if (translating) return;
@@ -67,11 +72,18 @@ function ReplyForm() {
     } catch (e) { if (version === revision.current) setStatus(e instanceof Error ? e.message : "Translation unavailable."); }
     finally { setTranslating(false); }
   };
+  const saveDraft = async () => {
+    if (!review || busy || !draft.trim()) return;
+    setBusy(true);
+    try { await update(d => ({...d,reviewDrafts:[...(d.reviewDrafts ?? []).filter(r => r.reviewId !== id),{reviewId:id,draft,writingLanguage:from,customerLanguage:to,savedAt:new Date().toISOString()}]})); setStatus("Draft saved on this device. Come back whenever you’re ready."); }
+    catch { setStatus("Could not save your draft. Please try again."); }
+    finally { setBusy(false); }
+  };
   const approve = async () => {
     if (!translated.trim() || key !== replyKey(draft, from, to) || !review) return;
     setBusy(true);
     try {
-      await update(d => ({ ...d, reviewReplies: [...(d.reviewReplies ?? []).filter(r => r.reviewId !== id), { reviewId: id, draft, writingLanguage: from, customerLanguage: to, translatedText: translated.trim(), source, modelVersion, latencyMs, approvedAt: new Date().toISOString() }] }));
+      await update(d => ({ ...d, reviewDrafts: d.reviewDrafts?.filter(r => r.reviewId !== id), reviewReplies: [...(d.reviewReplies ?? []).filter(r => r.reviewId !== id), { reviewId: id, draft, writingLanguage: from, customerLanguage: to, translatedText: translated.trim(), source, modelVersion, latencyMs, approvedAt: new Date().toISOString() }] }));
       setStatus("Approved reply saved on this device. Nothing has been posted to a review platform.");
     } catch { setStatus("Could not save. Please try again; your response is still here."); }
     finally { setBusy(false); }
@@ -96,13 +108,15 @@ function ReplyForm() {
       <LanguagePicker label="Customer’s language" languages={replyLanguages} value={to} onChange={l => { invalidate(); setTo(validLanguage(l)); }} disabled={busy} />
     </Card>
     <Card>
-      <Heading>Suggested response</Heading><Badge label="Offline example · Authored template" />
-      <Muted>AI generation is awaiting a local model. This optional example uses the rating and is not a personalized analysis of the review.</Muted>
+      <Heading>Suggested response</Heading><Badge label={exampleInfo && exampleInfo.source !== "authored-example" ? `AI draft · ${exampleInfo.source}` : "Offline example · Authored template"} />
+      <Muted>{exampleInfo && exampleInfo.source !== "authored-example" ? `Model: ${exampleInfo.modelVersion}. Review the draft before using it.` : "Optional wording to get you started. These authored examples use the rating; your teammate’s AI adapter will replace them."}</Muted>
       <Button label="Show example response" onPress={() => void suggest()} secondary disabled={busy} />
       {!!example && <><Body>{example}</Body><Button label="Use this example" onPress={() => { invalidate(); setDraft(example); }} disabled={busy} /></>}
     </Card>
     <Card><Heading>Write your response</Heading>
       <Field label={`Your response (${from})`} value={draft} onChange={v => { if (!busy) { invalidate(); setDraft(v); } }} multiline />
+      {savedDraft && <Muted>{savedDraft.draft === draft && savedDraft.writingLanguage === from && savedDraft.customerLanguage === to ? "Draft saved on this device" : "Unsaved edits · save your draft before leaving"}</Muted>}
+      <Button secondary label={busy ? "Saving…" : "Save draft for later"} disabled={busy || translating || !draft.trim()} onPress={() => void saveDraft()} />
       <Button label={translating ? "Translating…" : `Translate to ${to}`} onPress={() => void translate()} disabled={!draft.trim() || busy || translating} />
       <Muted>{(data?.translationEndpoint || Platform.OS === "web") ? "NLLB translates through your connected laptop service. Keep the laptop running and your phone connected. This is not on-device phone inference." : "Connect your laptop in Offline & AI settings to translate custom text with NLLB. On-device NLLB is not installed."}</Muted>
     </Card>

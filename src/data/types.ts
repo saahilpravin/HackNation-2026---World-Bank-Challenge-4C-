@@ -49,6 +49,7 @@ export type ReviewReply = {
   latencyMs?: number;
   approvedAt: string;
 };
+export type ReviewDraft = { reviewId: string; draft: string; writingLanguage: string; customerLanguage: string; savedAt: string };
 export type Review = {
   id: string;
   guest: string;
@@ -73,4 +74,5 @@ export type Data = {
   replies: Reply[];
   reviews: Review[];
   reviewReplies?: ReviewReply[];
+  reviewDrafts?: ReviewDraft[];
 };

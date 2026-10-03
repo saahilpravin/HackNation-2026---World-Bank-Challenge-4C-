@@ -1,6 +1,6 @@
 # Feedback assistant
 
-Insights analyzes the stored review and inbound message corpus, with separate sample and business modes. The first executable provider is an English keyword baseline; it is not an SLM and has no measured accuracy. It ignores manually assigned theme labels. Every finding includes original evidence and a source type. Repetition counts records, not people. Review entry is manual and persists through the existing local storage layer. There is no external review ingestion.
+Insights analyzes the stored review corpus, with separate sample and business modes. The first executable provider is an English keyword baseline; it is not an SLM and has no measured accuracy. It ignores manually assigned theme labels. Every finding includes original evidence and a source type. Repetition counts records, not people. Reviews are operator-imported records; no tourist review-entry form is exposed. There is no external review ingestion.
 
 ## Connect the small language model
 

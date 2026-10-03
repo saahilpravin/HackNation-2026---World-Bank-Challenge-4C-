@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useIsFocused } from "expo-router";
 import { colors } from "./theme";
 import { BottomNavigation } from "./bottom-navigation";
 export { colors } from "./theme";
@@ -27,6 +27,8 @@ export function Page({
   back?: boolean;
   showProfile?: boolean;
 }) {
+  const focused = useIsFocused();
+  if (!focused) return null;
   return (
     <SafeAreaView style={s.safe} edges={["top", "left", "right"]}>
       <View style={s.brandBar}>

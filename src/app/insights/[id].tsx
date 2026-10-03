@@ -5,7 +5,7 @@ import { analyzeFeedback } from "../../ai/feedback";
 export default function Evidence() {
   const { id, sample } = useLocalSearchParams<{ id: string; sample?: string }>();
   const { data } = useStore();
-  const report = analyzeFeedback(data ?? { reviews: [], messages: [] }, sample === "1");
+  const report = analyzeFeedback({ reviews: data?.reviews ?? [], messages: [] }, sample === "1");
   const finding = report.findings.find(f => f.id === id);
   return (
     <Page title="Supporting feedback" subtitle={finding?.title} back>
@@ -14,8 +14,8 @@ export default function Evidence() {
       {finding?.evidence.map(e => <Card key={`${e.kind}:${e.id}`}>
         <Badge label={`${e.demo ? "Sample " : ""}${e.kind}`} />
         <Heading>{e.guest}</Heading><Body>“{e.text}”</Body>
-        {e.kind === "review" && <Button label="Respond to review" onPress={() => router.push(`/reviews/${e.id}`)} secondary />}
-        {e.kind === "message" && <Button label="Open message" onPress={() => router.push(`/messages/${e.id}`)} secondary />}
+        {e.kind === "review" && <Button label="Read and reply" onPress={() => router.push(`/reviews/${e.id}`)} secondary />}
+
       </Card>)}
       {!finding && <Body>No supporting feedback found. Return to Insights to see current findings.</Body>}
     </Page>

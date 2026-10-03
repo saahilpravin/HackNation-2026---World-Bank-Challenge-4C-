@@ -65,7 +65,7 @@ export function ProfileForm({ onboarding = false }: { onboarding?: boolean }) {
               ownerName: "Your name (optional)",
               currency: "Currency code (for example KES, USD, EUR)",
               experience: "Service or experience",
-              language: "Your language (UI is English in this starter)",
+              language: "Your preferred review language",
               visitors: "Customer languages",
               hours: "Available days and booking times",
             }[k]

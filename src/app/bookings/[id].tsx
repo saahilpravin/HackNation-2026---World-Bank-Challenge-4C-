@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import {
   Page,
   Card,
@@ -99,11 +99,6 @@ function Editor({ booking }: { booking: Booking }) {
           secondary
           onPress={() => persist("cancelled")}
           disabled={busy || b.status === "cancelled"}
-        />
-        <Button
-          label="Open customer message"
-          secondary
-          onPress={() => router.push(`/messages/${b.messageId}`)}
         />
       </Card>
     </Page>

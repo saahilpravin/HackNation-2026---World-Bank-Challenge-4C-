@@ -55,7 +55,7 @@ function OfflineSettings() {
         />
         <Heading>Your business stays with you</Heading>
         <Body>
-          Profile, messages, bookings, reviews and approved replies are stored
+          Business details, bookings, reviews and saved responses are stored
           locally.
         </Body>
         <Muted>
@@ -77,24 +77,24 @@ function OfflineSettings() {
         {!!connectionStatus && <Notice text={connectionStatus} />}
       </Card>
       <Card>
-        <Heading>AI model status</Heading>
-        <Badge label="No model installed" warn />
-        <Body>
-          Message understanding uses labelled demo fixtures. Review reply translation on mobile and web can connect to the laptop NLLB service. No on-device phone model is installed. Feedback analysis uses local English keyword rules.
-        </Body>
-        <Muted>
-          Phone model performance and translation accuracy have not been measured.
-        </Muted>
+        <Heading>What works offline</Heading>
+        <Badge label="Ready on this device" />
+        <Body>Read the bundled sample reviews in ten languages, save drafts and approved replies, edit your business, and manage bookings.</Body>
+        <Muted>Native app records are stored in SQLite. The web preview uses browser storage. The first Expo Go load needs a connection; a standalone installed app is the more reliable offline demo.</Muted>
       </Card>
       <Card>
-        <Heading>Local outbox</Heading>
-        <Body>{data?.replies.length ?? 0} message replies queued locally · {data?.reviewReplies?.length ?? 0} review replies approved</Body>
-        <Muted>
-          Messaging transport is not connected. Replies stay on this device and
-          are never automatically sent.
-        </Muted>
+        <Heading>Your AI tools</Heading>
+        <Badge label="Translation · laptop connection" />
+        <Body>Custom NLLB translation runs on your laptop. After the model is downloaded, it can work without internet while your phone remains connected to the same local Wi-Fi.</Body>
+        <Badge label="Review assistant · example mode" />
+        <Body>Suggested replies are authored examples. Insights use local rules and curated experiments. Your teammate’s model is not connected yet.</Body>
+        <Muted>No model runs on this phone yet. Fully disconnected phone AI needs a compact model and a native inference runtime.</Muted>
       </Card>
-      <Notice text="First installation needs internet. After installation, core data and these demo examples work offline. Real offline AI is remaining team work." />
+      <Card>
+        <Heading>Saved responses</Heading>
+        <Body>{data?.reviewDrafts?.length ?? 0} drafts · {data?.reviewReplies?.length ?? 0} approved review replies</Body>
+        <Muted>Your responses stay on this device. Lauda does not automatically post to review platforms.</Muted>
+      </Card>
     </Page>
   );
 }

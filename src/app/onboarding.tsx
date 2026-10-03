@@ -51,7 +51,7 @@ export default function Onboarding() {
   return (
     <Page
       title="Welcome to Lauda"
-      subtitle="Messages, bookings, and feedback in one place."
+      subtitle="Reviews, bookings, and ideas that move you forward."
       showProfile={false}
     >
       <View style={s.hero}>
@@ -65,8 +65,8 @@ export default function Onboarding() {
         {[
           {
             icon: "chatbubbles-outline",
-            title: "Understand every conversation",
-            text: "Review messages, translations, and replies in one place.",
+            title: "Listen across languages",
+            text: "Read imported reviews in your language and prepare thoughtful replies.",
           },
           {
             icon: "calendar-outline",
@@ -106,8 +106,7 @@ export default function Onboarding() {
       />
       {Boolean(failure) && <Notice text={failure} />}
       <Muted>
-        The demo uses a coffee farm with sample records and scripted AI
-        examples. No model is installed yet.
+        The demo uses a coffee farm with sample reviews and bookings. Translation samples work offline; a phone AI model is not installed.
       </Muted>
     </Page>
   );
