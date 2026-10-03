@@ -82,7 +82,7 @@ function Editor({ booking }: { booking: Booking }) {
           onChange={(v) => setB({ ...b, notes: v })}
           multiline
         />
-        {Boolean(error) && <Notice text={error} />}{" "}
+        {Boolean(error) && <Notice text={error} />}
         {saved && <Notice text="Booking saved on this device." />}
         <Button
           label="Save changes"

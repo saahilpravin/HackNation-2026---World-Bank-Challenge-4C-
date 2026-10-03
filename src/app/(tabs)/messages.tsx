@@ -36,6 +36,12 @@ export default function Messages() {
         <Card key={m.id} onPress={() => router.push(`/messages/${m.id}`)}>
           <Badge label={`${m.language}${m.unread ? " · New" : ""}`} />
           <Heading>{m.guest}</Heading>
+          {m.demo && (
+            <Badge
+              warn
+              label={`Demo intent: ${{ m1: "Booking request", m2: "Price inquiry", m3: "Directions", m4: "Needs review" }[m.id as "m1" | "m2" | "m3" | "m4"] ?? "Needs review"}`}
+            />
+          )}
           <Body>{m.text}</Body>
           <Muted>
             {m.demo ? "Sample message · demo AI available" : "Local message"} ·

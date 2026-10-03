@@ -43,7 +43,9 @@ export default function Home() {
         </View>
         <View style={{ flex: 1 }}>
           <Card onPress={() => router.push("/bookings")}>
-            <Heading>{tours.length} tours</Heading>
+            <Heading>
+              {tours.length} {tours.length === 1 ? "tour" : "tours"}
+            </Heading>
             <Muted>scheduled today</Muted>
           </Card>
         </View>

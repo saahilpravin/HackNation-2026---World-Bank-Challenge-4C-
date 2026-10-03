@@ -18,3 +18,5 @@ npm test
 Use a development build if your installed Expo Go does not support this SDK. No secrets, login or backend are needed. First install/load requires internet; native data is retained in SQLite on the device. Web preview uses browser localStorage.
 
 **AI is scripted demo data, not an installed or evaluated model.** Replies require human approval and stay in a local outbox; no messages are sent. See [team ownership and demo guide](docs/TEAM.md) for remaining work and limitations.
+
+If Metro reports too many file watchers on macOS, use `CI=1 npm start` temporarily (restart the server after edits) or install Watchman from its official distribution.
