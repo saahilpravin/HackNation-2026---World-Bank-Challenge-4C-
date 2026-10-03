@@ -1,2 +1,20 @@
 # HackNation-2026---World-Bank-Challenge-4C-
 Build AI that works where connectivity, devices and infrastructure are constrained. Create a targeted, offline-capable solution for health, agriculture or tourism, designed around local languages, real-world data and the devices people already have.
+
+
+## Noor AI starter
+React Native + Expo SDK 57 + TypeScript + Expo Router. Four tabs: Home, Messages, Bookings, Insights. Secondary routes cover onboarding, profile, offline status, message review, booking edits and insight evidence.
+
+```sh
+npm ci
+npm start
+# Scan the Expo QR using an SDK-compatible Expo Go on your phone.
+npm run web
+npm run typecheck
+npm run lint
+npm test
+```
+
+Use a development build if your installed Expo Go does not support this SDK. No secrets, login or backend are needed. First install/load requires internet; native data is retained in SQLite on the device. Web preview uses browser localStorage.
+
+**AI is scripted demo data, not an installed or evaluated model.** Replies require human approval and stay in a local outbox; no messages are sent. See [team ownership and demo guide](docs/TEAM.md) for remaining work and limitations.
