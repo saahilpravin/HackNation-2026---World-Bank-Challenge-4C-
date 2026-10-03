@@ -1,5 +1,6 @@
 import { openDatabaseAsync } from "expo-sqlite";
 import type { Data } from "./types";
+// Keep the original filename so existing device data survives the Lauda rebrand.
 const database = openDatabaseAsync("noor.db");
 export async function load(): Promise<Data | null> {
   const db = await database;

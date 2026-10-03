@@ -9,7 +9,7 @@ export function validateBooking(
     booking.guests < 1 ||
     booking.guests > capacity
   )
-    return `Guests must be between 1 and ${capacity}.`;
+    return `Participants must be between 1 and ${capacity}.`;
   if (
     !/^\d{4}-\d{2}-\d{2}$/.test(booking.date) ||
     Number.isNaN(Date.parse(booking.date)) ||

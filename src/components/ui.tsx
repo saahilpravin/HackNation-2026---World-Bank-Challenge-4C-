@@ -12,23 +12,25 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 export const colors = {
-  bg: "#F6F5EE",
-  ink: "#183C35",
-  muted: "#64766F",
-  green: "#216653",
-  line: "#DFE5DA",
-  amber: "#896020",
+  bg: "#F5F6FA",
+  ink: "#17213D",
+  muted: "#69738A",
+  accent: "#4C5EDB",
+  line: "#E4E7F0",
+  amber: "#8A5421",
 };
 export function Page({
   title,
   subtitle,
   children,
   back = false,
+  showProfile = true,
 }: {
   title: string;
   subtitle?: string;
   children: React.ReactNode;
   back?: boolean;
+  showProfile?: boolean;
 }) {
   return (
     <SafeAreaView style={s.safe} edges={["top", "left", "right"]}>
@@ -36,37 +38,106 @@ export function Page({
         contentContainerStyle={s.page}
         keyboardShouldPersistTaps="handled"
       >
+        <View style={s.brandBar}>
+          <View style={s.brandGroup}>
+            <Logo />
+            <Text style={s.wordmark}>
+              Lauda<Text style={{ color: colors.accent }}>.</Text>
+            </Text>
+          </View>
+          {showProfile && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Business profile"
+              style={s.avatar}
+              onPress={() => router.push("/profile")}
+            >
+              <Ionicons name="options-outline" size={21} color={colors.ink} />
+            </Pressable>
+          )}
+        </View>
         {back && (
-          <Button
-            label="Back"
-            secondary
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Back"
             onPress={() =>
               router.canGoBack() ? router.back() : router.replace("/")
             }
-          />
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 6,
+              minHeight: 44,
+            }}
+          >
+            <Ionicons name="arrow-back" size={18} color={colors.muted} />
+            <Text style={s.muted}>Back</Text>
+          </Pressable>
         )}
         <View style={s.header}>
           <View style={{ flex: 1 }}>
-            <Text style={s.eyebrow}>NOOR AI / YOUR BUSINESS COMPANION</Text>
             <Text accessibilityRole="header" style={s.title}>
               {title}
             </Text>
-            {subtitle && <Text style={s.muted}>{subtitle}</Text>}
+            {subtitle && (
+              <Text style={[s.muted, { marginTop: 6 }]}>{subtitle}</Text>
+            )}
           </View>
-          <Pressable
-            accessibilityLabel="Business profile"
-            style={s.avatar}
-            onPress={() => router.push("/profile")}
-          >
-            <Ionicons name="leaf-outline" size={24} color={colors.green} />
-          </Pressable>
         </View>
         {children}
         <Text style={[s.muted, { textAlign: "center", marginTop: 12 }]}>
-          Made for local businesses. Ready for the everyday.
+          Lauda · Your business, connected.
         </Text>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+export function Logo({ large = false }: { large?: boolean }) {
+  const size = large ? 76 : 34;
+  return (
+    <View
+      accessibilityLabel="Lauda logo"
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size * 0.27,
+        backgroundColor: colors.accent,
+      }}
+    >
+      <View
+        style={{
+          position: "absolute",
+          left: size * 0.3,
+          top: size * 0.25,
+          width: size * 0.12,
+          height: size * 0.45,
+          backgroundColor: "white",
+          borderRadius: 2,
+        }}
+      />
+      <View
+        style={{
+          position: "absolute",
+          left: size * 0.3,
+          top: size * 0.58,
+          width: size * 0.4,
+          height: size * 0.12,
+          backgroundColor: "white",
+          borderRadius: 2,
+        }}
+      />
+      <View
+        style={{
+          position: "absolute",
+          left: size * 0.59,
+          top: size * 0.26,
+          width: size * 0.15,
+          height: size * 0.15,
+          borderRadius: size,
+          backgroundColor: "#B2F0DA",
+        }}
+      />
+    </View>
   );
 }
 export function Card({
@@ -112,7 +183,7 @@ export function Badge({
     <View style={[s.badge, warn && { backgroundColor: "#FFF0D1" }]}>
       <Text
         style={{
-          color: warn ? colors.amber : colors.green,
+          color: warn ? colors.amber : colors.accent,
           fontSize: 12,
           fontWeight: "700",
         }}
@@ -148,7 +219,7 @@ export function Button({
       <Text
         style={{
           fontWeight: "700",
-          color: secondary ? colors.green : "white",
+          color: secondary ? colors.accent : "white",
           textAlign: "center",
         }}
       >
@@ -201,11 +272,24 @@ export function Loading() {
     <View
       style={{ flex: 1, justifyContent: "center", backgroundColor: colors.bg }}
     >
-      <ActivityIndicator size="large" color={colors.green} />
+      <ActivityIndicator size="large" color={colors.accent} />
     </View>
   );
 }
 export const s = StyleSheet.create({
+  brandBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingBottom: 12,
+  },
+  brandGroup: { flexDirection: "row", alignItems: "center", gap: 10 },
+  wordmark: {
+    fontSize: 25,
+    fontWeight: "800",
+    letterSpacing: -1,
+    color: colors.ink,
+  },
   safe: { flex: 1, backgroundColor: colors.bg },
   page: {
     padding: 22,
@@ -224,27 +308,27 @@ export const s = StyleSheet.create({
   eyebrow: {
     fontSize: 10,
     letterSpacing: 1.3,
-    color: colors.green,
+    color: colors.accent,
     fontWeight: "800",
     marginBottom: 10,
   },
   title: {
-    fontSize: 32,
+    fontSize: 30,
     fontWeight: "800",
     color: colors.ink,
-    letterSpacing: -1,
+    letterSpacing: -0.8,
   },
   avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#E3ECDD",
+    width: 42,
+    height: 42,
+    borderRadius: 16,
+    backgroundColor: "#EAEFFD",
     alignItems: "center",
     justifyContent: "center",
   },
   card: {
     padding: 20,
-    borderRadius: 22,
+    borderRadius: 18,
     backgroundColor: "white",
     borderWidth: 1,
     borderColor: colors.line,
@@ -258,20 +342,20 @@ export const s = StyleSheet.create({
     paddingVertical: 6,
     alignSelf: "flex-start",
     borderRadius: 20,
-    backgroundColor: "#E8F1E7",
+    backgroundColor: "#EDF0FF",
   },
   button: {
-    backgroundColor: colors.green,
+    backgroundColor: colors.accent,
     borderRadius: 14,
     padding: 16,
     minHeight: 48,
   },
-  secondary: { backgroundColor: "#E7EEE3" },
+  secondary: { backgroundColor: "#EDF0FF" },
   label: { fontSize: 13, fontWeight: "700", color: colors.ink },
   input: {
     backgroundColor: "white",
     borderWidth: 1,
-    borderColor: "#CCD7C8",
+    borderColor: "#DCE1EF",
     borderRadius: 12,
     padding: 14,
     fontSize: 16,
@@ -279,7 +363,7 @@ export const s = StyleSheet.create({
   },
   notice: { padding: 16, backgroundColor: "#FFF1D8", borderRadius: 14 },
   row: { flexDirection: "row", gap: 12 },
-  hero: { padding: 24, borderRadius: 24, backgroundColor: colors.ink, gap: 12 },
+  hero: { padding: 24, borderRadius: 22, backgroundColor: "#263563", gap: 12 },
   heroTitle: { color: "white", fontSize: 25, fontWeight: "700" },
-  heroText: { color: "#CFE2D8", fontSize: 15, lineHeight: 22 },
+  heroText: { color: "#C8D0F6", fontSize: 15, lineHeight: 22 },
 });

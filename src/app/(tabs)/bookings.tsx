@@ -24,7 +24,7 @@ export default function Bookings() {
   return (
     <Page
       title="Your bookings"
-      subtitle="Small groups. Meaningful experiences."
+      subtitle="Plan your availability. Keep every booking in view."
     >
       <Button
         label={
@@ -38,7 +38,7 @@ export default function Bookings() {
           <Badge label={b.status} warn={b.status === "pending"} />
           <Heading>{b.guest}</Heading>
           <Body>
-            {b.date} · {b.time} · {b.guests} guests
+            {b.date} · {b.time} · {b.guests} participants
           </Body>
           <Muted>{b.demo ? "Sample booking · " : ""}View details →</Muted>
         </Card>

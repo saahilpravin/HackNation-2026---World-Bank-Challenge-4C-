@@ -8,7 +8,7 @@ export default function Profile() {
   return (
     <Page
       title="Business profile"
-      subtitle="Your experience, in your own words."
+      subtitle="The facts that make your business yours."
       back
     >
       <ProfileForm />

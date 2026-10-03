@@ -11,13 +11,14 @@ export default function Layout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.green,
+        tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.muted,
         tabBarStyle: {
-          backgroundColor: "#FCFCF8",
+          backgroundColor: "#FFFFFF",
           borderTopColor: colors.line,
         },
-        tabBarLabelStyle: { fontWeight: "700" },
+        tabBarLabelStyle: { fontWeight: "700", fontSize: 11 },
+        tabBarActiveBackgroundColor: "#F1F3FF",
       }}
     >
       {(["index", "messages", "bookings", "insights"] as const).map(

@@ -61,11 +61,11 @@ export default function Detail() {
   return (
     <Page
       title={m.guest}
-      subtitle={`${m.language} · visitor conversation`}
+      subtitle={`${m.language} · customer conversation`}
       back
     >
       <Card>
-        <Badge label={m.demo ? "Sample visitor message" : "Local message"} />
+        <Badge label={m.demo ? "Sample customer message" : "Local message"} />
         <Heading>Original message</Heading>
         <Body>{m.text}</Body>
       </Card>
@@ -106,7 +106,7 @@ export default function Detail() {
               approving. Approval only saves a local queue entry.
             </Muted>
             <Field
-              label="Reply to visitor"
+              label="Reply to customer"
               value={reply}
               onChange={setReply}
               multiline

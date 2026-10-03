@@ -57,8 +57,8 @@ function Editor({ booking }: { booking: Booking }) {
         <Badge label={b.status} />
         <Heading>{data?.profile?.experience}</Heading>
         <Body>
-          {b.guests * data!.profile!.price} KES total ·{" "}
-          {data?.profile?.duration} minutes
+          {b.guests * data!.profile!.price} {data!.profile!.currency ?? "KES"}{" "}
+          total · {data?.profile?.duration} minutes
         </Body>
         <Field
           label="Date (YYYY-MM-DD)"
@@ -71,7 +71,7 @@ function Editor({ booking }: { booking: Booking }) {
           onChange={(v) => setB({ ...b, time: v })}
         />
         <Field
-          label="Guests"
+          label="Participants"
           value={String(b.guests)}
           keyboardType="numeric"
           onChange={(v) => setB({ ...b, guests: Number(v) })}
@@ -101,7 +101,7 @@ function Editor({ booking }: { booking: Booking }) {
           disabled={busy || b.status === "cancelled"}
         />
         <Button
-          label="Open visitor message"
+          label="Open customer message"
           secondary
           onPress={() => router.push(`/messages/${b.messageId}`)}
         />

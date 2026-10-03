@@ -7,9 +7,9 @@ export default function Evidence() {
   const reviews = data?.reviews.filter((r) => r.theme === id) ?? [];
   return (
     <Page
-      title="Behind the insight"
+      title="Insight evidence"
       subtitle={
-        id === "directions" ? "A smoother arrival" : "A memorable tasting"
+        id === "directions" ? "A smoother arrival" : "Customer experience"
       }
       back
     >

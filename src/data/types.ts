@@ -1,4 +1,7 @@
 export type Profile = {
+  ownerName?: string;
+  currency?: string;
+  demoBusiness?: boolean;
   name: string;
   experience: string;
   language: string;

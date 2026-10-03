@@ -22,11 +22,8 @@ export default function Messages() {
         `${m.guest} ${m.text}`.toLowerCase().includes(q.toLowerCase()),
     ) ?? [];
   return (
-    <Page
-      title="Visitor messages"
-      subtitle="Every conversation starts a connection."
-    >
-      <Field label="Search visitors or messages" value={q} onChange={setQ} />
+    <Page title="Messages" subtitle="Customer conversations, all in one place.">
+      <Field label="Search customers or messages" value={q} onChange={setQ} />
       <Button
         label={unread ? "Showing unread · show all" : "Show unread only"}
         secondary

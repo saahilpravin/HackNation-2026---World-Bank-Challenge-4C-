@@ -37,7 +37,7 @@ export const demoAI: AIProvider = {
           translation:
             "Hello! There are four of us. Can we visit your farm tomorrow at 2 pm?",
           fields: { guests: 4, day: "Tomorrow (verify date)", time: "14:00" },
-          suggestion: `Bonjour Camille ! Merci pour votre intérêt. La visite coûte ${profile.price} KES par personne et dure ${profile.duration} minutes. Je vais vérifier la disponibilité pour quatre personnes à 14 h et vous confirmer.`,
+          suggestion: `Bonjour Camille ! Merci pour votre intérêt. La visite coûte ${profile.price} ${profile.currency ?? "KES"} par personne et dure ${profile.duration} minutes. Je vais vérifier la disponibilité pour quatre personnes à 14 h et vous confirmer.`,
         };
       case "m2":
         return {
@@ -45,7 +45,7 @@ export const demoAI: AIProvider = {
           intent: "Price inquiry",
           translation: message.text,
           fields: {},
-          suggestion: `Hi Daniel! Our ${profile.experience} costs ${profile.price} KES per person and lasts ${profile.duration} minutes. Please tell me the children's ages so I can confirm the details.`,
+          suggestion: `Hi Daniel! Our ${profile.experience} costs ${profile.price} ${profile.currency ?? "KES"} per person and lasts ${profile.duration} minutes. Please tell me the children's ages so I can confirm the details.`,
         };
       case "m3":
         return {

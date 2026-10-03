@@ -6,7 +6,7 @@ import React, {
   useState,
 } from "react";
 import { load, save } from "../data/storage";
-import { demoData } from "../data/demo";
+import { emptyData } from "../data/profile";
 import type { Data } from "../data/types";
 type Store = {
   data: Data | null;
@@ -24,7 +24,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     (async () => {
       try {
         const saved = await load();
-        const initial = saved ?? demoData();
+        const initial = saved ?? emptyData();
         if (!saved) await save(initial);
         if (alive) {
           current.current = initial;

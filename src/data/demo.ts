@@ -1,5 +1,8 @@
 import type { Data, Profile } from "./types";
-export const defaultProfile: Profile = {
+export const demoProfile: Profile = {
+  ownerName: "Noor",
+  currency: "KES",
+  demoBusiness: true,
   name: "Noor's Coffee Farm",
   experience: "Coffee farm tour",
   language: "English",
