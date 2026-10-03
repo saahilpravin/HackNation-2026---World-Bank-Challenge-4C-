@@ -3,6 +3,10 @@
   "compilerOptions": {
     "strict": true,
     "allowImportingTsExtensions": true,
-    "types": ["node", "react"]
+    "types": [
+      "node",
+      "react"
+    ],
+    "noEmit": true
   }
 }
