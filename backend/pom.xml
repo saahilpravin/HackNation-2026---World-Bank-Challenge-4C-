@@ -8,10 +8,10 @@
 		<version>4.1.1</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.noor</groupId>
-	<artifactId>reviews-backend</artifactId>
+	<groupId>com.lauda</groupId>
+	<artifactId>lauda-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name/>
+	<name>lauda-api</name>
 	<description/>
 	<url/>
 	<licenses>
@@ -39,6 +39,20 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.microsoft.onnxruntime</groupId>
+			<artifactId>onnxruntime</artifactId>
+			<version>1.20.0</version> <!-- confirm on Maven Central -->
+		</dependency>
+		<dependency>
+			<groupId>ai.djl.huggingface</groupId>
+			<artifactId>tokenizers</artifactId>
+			<version>0.30.0</version> <!-- confirm on Maven Central -->
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
 		</dependency>
 	</dependencies>
 
