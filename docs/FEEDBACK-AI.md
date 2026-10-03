@@ -17,3 +17,7 @@ Open a review from Insights or an evidence card. Review language is optional for
 ReviewReplyProvider in src/ai/review-replies.ts defines suggestion and translation calls. The current provider returns authored examples and exact template language variants only. Arbitrary edits fail explicitly unless source and destination languages match. Manual final translations are allowed and labeled. Native model integration, personalized generation, language detection and translation-quality evaluation remain outstanding. Require native-language reviewers for the authored French/Kiswahili text before public use. Do not claim BLEU, accuracy or latency from these templates.
 
 Requested inputs from the team: priority language pairs, actual dataset/model download links and usage terms, intended lowest-spec phone, and whether the challenge permits optional online inference. Keep API secrets outside the app. The screenshot is a resource catalog, not supplied training data.
+
+## Selected translation model experiment
+
+The team selected facebook/nllb-200-distilled-600M. `ai/translation/run.py` runs real local laptop inference with an isolated Python environment. See `ai/translation/README.md` for online download, offline checkpoint use and evaluation procedure. This is separate from the current app template provider and is not an on-device mobile integration. It translates text; review response generation still needs an instruction-following model.

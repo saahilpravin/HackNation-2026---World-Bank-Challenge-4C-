@@ -1,0 +1,4 @@
+torch==2.8.0
+transformers==4.48.3
+sentencepiece>=0.2,<1
+sacrebleu>=2.5,<3

@@ -39,3 +39,9 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Local AI experiments (never commit weights or environment)
+.venv-ai/
+.ai-cache/
+ai/translation/results/
+__pycache__/
