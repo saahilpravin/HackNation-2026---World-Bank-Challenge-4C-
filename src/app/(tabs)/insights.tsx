@@ -1,62 +1,50 @@
 import { useMemo, useState } from "react";
-import { Text, View } from "react-native";
+import { Text, View, Pressable, StyleSheet, useWindowDimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { Page, Card, Heading, Body, Badge, Muted, Button, colors } from "../../components/ui";
-import { Chips, Hero } from "../../components/studio";
+import { Page, Card, Heading, Body, Muted, Button, colors } from "../../components/ui";
+import { Hero, Stars, Avatar } from "../../components/studio";
 import { useStore } from "../../state/store";
-import { analyzeFeedback } from "../../ai/feedback";
 import { ideasFor } from "../../ai/ideas";
+import { categorizeReviews } from "../../ai/review-categories";
 import { reviewState } from "../../data/review-tools";
 import { isDemoProfile } from "../../data/profile";
 export default function Insights() {
-  const { data } = useStore();
-  if (!data) return null;
-  return <FeedbackStudio key={data.profile?.name} />;
+ const {data}=useStore();
+ const {width}=useWindowDimensions();
+ const [view,setView]=useState("categories");
+ const [selected,setSelected]=useState("guide");
+ const demo=!!data?.profile&&isDemoProfile(data.profile);
+ const reviews=useMemo(()=>(data?.reviews??[]).filter(r=>r.demo===demo),[data?.reviews,demo]);
+ const categories=useMemo(()=>categorizeReviews(reviews),[reviews]);
+ const ideas=useMemo(()=>ideasFor(reviews),[reviews]);
+ if(!data) return null;
+ const category=categories.find(c=>c.id===selected)!;
+ const unanswered=reviews.filter(r=>reviewState(r,data.reviewReplies)==="new").length;
+ const average=reviews.length?(reviews.reduce((sum,r)=>sum+r.rating,0)/reviews.length).toFixed(1):"—";
+ return <Page title="Visitor insights" subtitle={`${data.profile?.name ?? "Your business"} · Understand the experience behind every review.`}>
+  <Hero eyebrow="REVIEW INTELLIGENCE" title={"Know what’s working.\nSee what to improve."}><Text style={s.heroBody}>A clear view of your visitors’ feedback, organised around the things that matter.</Text><View style={s.heroFooter}><View style={s.liveDot}/><Text style={s.heroCaption}>Local workspace · {reviews.length} reviews</Text></View></Hero>
+  <View style={s.stats}>{[{label:"Average rating",value:average,icon:"star-outline"},{label:"Need a reply",value:unanswered,icon:"chatbubble-outline"},{label:"Review languages",value:new Set(reviews.map(r=>r.language)).size,icon:"language-outline"}].map(stat=><View key={stat.label} style={s.stat}><Ionicons name={stat.icon as "star-outline"} size={19} color={colors.accent}/><Text style={s.statNumber}>{stat.value}</Text><Text style={s.statLabel}>{stat.label}</Text></View>)}</View>
+  <View style={s.segment}>{[{id:"categories",title:"Review categories"},{id:"ideas",title:"Suggested improvements"}].map(tab=><Pressable key={tab.id} accessibilityRole="tab" accessibilityState={{selected:view===tab.id}} aria-selected={view===tab.id} onPress={()=>setView(tab.id)} style={[s.segmentItem,view===tab.id&&s.segmentActive]}><Text style={[s.segmentText,view===tab.id&&{color:colors.ink}]}>{tab.title}</Text></Pressable>)}</View>
+  {view==="categories"?<>
+   <View style={s.sectionHead}><View style={{flex:1}}><Heading>Explore by category</Heading><Muted>Select a category to see the actual feedback.</Muted></View><Text style={s.smallLabel}>{categories.length} CATEGORIES</Text></View>
+   <View style={s.grid}>{categories.map(item=><Pressable key={item.id} accessibilityRole="button" accessibilityLabel={`${item.title}: ${item.reviews.length} reviews`} accessibilityState={{selected:selected===item.id}} onPress={()=>setSelected(item.id)} style={[s.category, {flexBasis:width>=800?"30%":"45%"},selected===item.id&&s.selectedCategory]}><View style={s.categoryTop}><View style={[s.icon,selected===item.id&&{backgroundColor:colors.accent}]}><Ionicons name={item.icon} size={21} color={selected===item.id?"white":colors.accent}/></View><Text style={s.categoryCount}>{item.reviews.length}</Text></View><Text style={s.categoryTitle}>{item.title}</Text><Text style={s.categoryCaption}>{item.reviews.length?"View feedback →":"No feedback yet"}</Text></Pressable>)}</View>
+   <Card><View style={s.sectionHead}><View style={{flex:1}}><Text style={s.smallLabel}>SELECTED CATEGORY</Text><Heading>{category.title}</Heading></View><Ionicons name={category.icon} size={30} color={colors.accent}/></View><Body>{category.description}</Body><Muted>{category.reviews.length} matching reviews. A review can appear in more than one category. Counts reflect mentions, not quality scores.</Muted></Card>
+   {category.reviews.slice(0,5).map(review=><Card key={review.id} onPress={()=>router.push(`/reviews/${review.id}`)}><View style={s.sectionHead}><Avatar name={review.guest}/><View style={{flex:1}}><Heading>{review.guest}</Heading><Muted>{review.language} · {review.date}</Muted></View><Stars rating={review.rating}/></View><Body>{review.canonicalEnglish??review.text}</Body><View style={s.sectionHead}><Text style={s.categoryCaption}>{reviewState(review,data.reviewReplies)==="new"?"Awaiting your response":"Response recorded"}</Text><Ionicons name="arrow-forward" size={20} color={colors.accent}/></View></Card>)}
+   {!category.reviews.length&&<Card><Heading>No matching feedback yet</Heading><Body>There are no comments about {category.title.toLowerCase()} in this workspace. This does not indicate a positive or negative result.</Body></Card>}
+   {category.reviews.length>5&&<Button label="See all reviews" secondary onPress={()=>router.navigate("/reviews")}/>}
+  </>:<>
+   <View><Heading>Practical improvements</Heading><Muted>Small changes to test, each linked to supporting reviews.</Muted></View>
+   {ideas.map((idea,index)=><Card key={idea.id} onPress={()=>router.push(`/ideas/${idea.id}?sample=${demo?"1":"0"}`)}><View style={s.sectionHead}><View style={s.icon}><Ionicons name={idea.icon} color={colors.accent} size={24}/></View><Text style={s.smallLabel}>RECOMMENDATION {String(index+1).padStart(2,"0")}</Text><View style={{flex:1}}/><Ionicons name="arrow-up-outline" size={18} color={colors.muted}/></View><Heading>{idea.title}</Heading><Body>{idea.summary}</Body><View style={s.ideaFooter}><Text style={s.effort}>{idea.effort}</Text><Muted>{idea.evidence.length} supporting reviews</Muted></View></Card>)}
+   {!ideas.length&&<Card><Heading>More feedback is needed</Heading><Body>Suggestions will appear when this workspace contains matching review themes.</Body></Card>}
+  </>}
+  <View style={s.source}><Ionicons name="information-circle-outline" size={18} color={colors.muted}/><View style={{flex:1}}><Muted>{demo?"Demo: 150 synthetic reviews from 15 scenarios. ":""}Categories use keyword matching; improvements are curated examples. No live review platform or generative analysis model is connected.</Muted></View></View>
+ </Page>;
 }
-function FeedbackStudio() {
-  const { data } = useStore();
-  const [demo, setDemo] = useState(!!data?.profile && isDemoProfile(data.profile));
-  const [view, setView] = useState("overview");
-  const reviews = useMemo(() => (data?.reviews ?? []).filter(r => r.demo === demo), [data?.reviews,demo]);
-  const report = useMemo(() => analyzeFeedback({ reviews, messages: [] },demo), [reviews,demo]);
-  const ideas = useMemo(() => ideasFor(reviews), [reviews]);
-  const unanswered = reviews.filter(r => reviewState(r,data?.reviewReplies) === "new").length;
-  const answered = reviews.filter(r => reviewState(r,data?.reviewReplies) === "answered").length;
-  const approved = reviews.length - unanswered - answered;
-  const average = reviews.length ? (reviews.reduce((n,r) => n+r.rating,0)/reviews.length).toFixed(1) : "—";
-  const languages = [...new Set(reviews.map(r => r.language ?? "Unknown"))];
-  return <Page title="Insights" subtitle="Listen closely. Build what comes next.">
-    <Hero eyebrow="YOUR VISITORS, IN FOCUS" title="Good feedback deserves a great next chapter.">
-      <Text style={{ color: "#E6E0F6", fontSize: 15, lineHeight: 23 }}>{unanswered} reviews to answer · {languages.length} languages · one place to listen.</Text>
-      <View style={{ flexDirection: "row", gap: 24, marginTop: 8 }}>
-        {[{ value: average, label: "avg. rating" },{ value: reviews.length, label: "reviews" },{ value: ideas.length, label: "ideas to test" }].map(stat => <View key={stat.label}><Text style={{ color: "white", fontSize: 26, fontWeight: "700" }}>{stat.value}</Text><Text style={{ color: "#C3B9DC", fontSize: 12 }}>{stat.label}</Text></View>)}
-      </View>
-    </Hero>
-    <Chips value={view} onChange={setView} options={[{label:"Overview",value:"overview"},{label:"Ideas lab",value:"ideas"}]} />
-    {demo && <Muted>Demo workspace · 150 synthetic reviews based on 15 scenarios. Sample translations are cached NLLB outputs, not human-reviewed. No live review platform is connected.</Muted>}
-    {(data?.reviews.some(r => r.demo)) && <Button label={demo ? "Switch to business feedback" : "Explore the sample workspace"} secondary onPress={() => { setDemo(!demo); }} />}
-    {view === "overview" && <>
-      <Card><Badge label="FEEDBACK INTELLIGENCE · EXPLAINABLE BASELINE" /><Heading>The signals behind the stars</Heading><Body>Look beyond the rating: protect the moments visitors love and remove the friction they keep mentioning.</Body><Muted>Local rules scan authored English versions of demo scenarios. Findings are evidence-based examples, not an SLM analysis or measured demand.</Muted></Card>
-      <View style={{ flexDirection:"row",gap:12 }}><View style={{flex:1}}><Card><Ionicons name="chatbubble-outline" size={24} color={colors.coral} /><Heading>{unanswered} need a reply</Heading><Button label="Open queue" onPress={() => router.navigate("/reviews")} secondary /></Card></View><View style={{flex:1}}><Card><Ionicons name="checkmark-circle-outline" size={24} color={colors.teal} /><Heading>{answered + approved} handled</Heading><Muted>{answered} sample replies · {approved} approved locally</Muted></Card></View></View>
-      {[{ key:"love",title:"Keep the magic",caption:"What visitors value" },{ key:"improve",title:"Smooth the rough edges",caption:"Requests worth investigating" }].map(section => <Card key={section.key}>
-        <Badge label={section.caption} /><Heading>{section.title}</Heading>
-        {report.findings.filter(f => f.category === section.key).sort((a,b) => b.evidence.length-a.evidence.length).slice(0,4).map(f => <Card key={f.id} onPress={() => router.push(`/insights/${f.id}?sample=${demo?"1":"0"}`)}>
-          <View style={{flexDirection:"row",justifyContent:"space-between",gap:8}}><Heading>{f.title}</Heading><Text style={{color:colors.accent,fontWeight:"700"}}>{f.evidence.length}</Text></View>
-          <View style={{height:6,backgroundColor:colors.lavender,borderRadius:3}}><View style={{height:6,width:`${Math.min(100,f.evidence.length / Math.max(1,reviews.length)*100)}%`,backgroundColor:section.key==="love"?colors.teal:colors.coral,borderRadius:3}} /></View>
-          <Muted>Supporting records · read the evidence →</Muted>
-        </Card>)}
-        {!report.findings.some(f => f.category === section.key) && <Muted>No matching feedback yet.</Muted>}
-      </Card>)}
-      <Card><Badge label="NEXT SMALL EXPERIMENT" /><Heading>{ideas[0]?.title ?? "Start with listening"}</Heading><Body>{ideas[0]?.summary ?? "Imported reviews will help you identify your next experiment."}</Body><Button label="Explore the ideas lab" onPress={() => setView("ideas")} /></Card>
-    </>}
-    {view === "ideas" && <>
-      <Card><Badge label="SMALL BETS, GROUNDED IN FEEDBACK" /><Heading>Your next offering starts here</Heading><Body>These suggested experiments link to recurring themes. Test interest with visitors before spending money.</Body><Muted>Ideas are curated examples matched to review themes, not AI-generated business forecasts.</Muted></Card>
-      {ideas.map(idea => <Card key={idea.id} onPress={() => router.push(`/ideas/${idea.id}?sample=${demo?"1":"0"}`)}>
-        <View style={{flexDirection:"row",alignItems:"center",gap:12}}><View style={{backgroundColor:colors.lavender,padding:12,borderRadius:15}}><Ionicons name={idea.icon} color={colors.accent} size={25} /></View><View style={{flex:1}}><Badge label={idea.effort} /><Heading>{idea.title}</Heading></View></View>
-        <Body>{idea.summary}</Body><Muted>{idea.evidence.length} supporting {demo ? "sample " : ""}records · explore the experiment →</Muted>
-      </Card>)}
-      {!ideas.length && <Muted>No supported ideas yet. Reviews are imported by the operator; visitors do not leave reviews in Lauda.</Muted>}
-    </>}
-  </Page>;
-}
+const s=StyleSheet.create({
+ heroBody:{color:"#C9D8E9",fontSize:15,lineHeight:23,maxWidth:560},heroFooter:{flexDirection:"row",alignItems:"center",gap:8,marginTop:8},liveDot:{width:7,height:7,borderRadius:4,backgroundColor:"#87DDC0"},heroCaption:{color:"#B6CADF",fontSize:12},
+ stats:{flexDirection:"row",backgroundColor:"white",borderRadius:18,borderWidth:1,borderColor:colors.line,paddingVertical:18},stat:{flex:1,alignItems:"center",gap:8},statNumber:{fontSize:28,fontWeight:"700",letterSpacing:-1,color:colors.ink},statLabel:{fontSize:11,color:colors.muted,textAlign:"center"},
+ segment:{flexDirection:"row",padding:4,borderRadius:13,backgroundColor:"#E6EBF1",gap:4},segmentItem:{flex:1,paddingVertical:12,paddingHorizontal:4,borderRadius:10,alignItems:"center",justifyContent:"center",minHeight:48},segmentActive:{backgroundColor:"white"},segmentText:{fontSize:12,fontWeight:"700",color:colors.muted,textAlign:"center"},
+ sectionHead:{flexDirection:"row",alignItems:"center",gap:12,justifyContent:"space-between"},smallLabel:{fontSize:10,fontWeight:"700",letterSpacing:1,color:colors.muted},
+ grid:{flexDirection:"row",flexWrap:"wrap",gap:12},category:{flexGrow:1,flexBasis:"45%",padding:16,borderRadius:16,borderWidth:1,borderColor:colors.line,backgroundColor:"white",gap:12,minHeight:145},selectedCategory:{borderColor:colors.accent,backgroundColor:"#F0F4FF"},categoryTop:{flexDirection:"row",alignItems:"center",justifyContent:"space-between"},icon:{width:40,height:40,borderRadius:12,backgroundColor:colors.lavender,alignItems:"center",justifyContent:"center"},categoryCount:{fontSize:23,fontWeight:"700",color:colors.ink},categoryTitle:{fontSize:15,fontWeight:"700",color:colors.ink},categoryCaption:{fontSize:12,color:colors.muted},ideaFooter:{flexDirection:"row",justifyContent:"space-between",alignItems:"center",gap:8,paddingTop:12,borderTopWidth:1,borderTopColor:colors.line},effort:{fontSize:12,fontWeight:"600",color:colors.accent},source:{flexDirection:"row",gap:10,paddingVertical:8,alignItems:"flex-start"},
+});

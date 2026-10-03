@@ -65,7 +65,9 @@ export type Review = {
   theme: string;
   demo: boolean;
 };
+export type ReviewTranslation = { reviewId: string; sourceText: string; from: string; to: string; text: string; modelVersion: string; latencyMs: number };
 export type Data = {
+  reviewTranslations?: ReviewTranslation[];
   translationEndpoint?: string;
   demoReviewVersion?: number;
   profile: Profile | null;

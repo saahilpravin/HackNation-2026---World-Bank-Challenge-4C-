@@ -20,7 +20,7 @@ export function LanguagePicker({ label, value, languages, onChange, disabled = f
   const matches = languages.filter(language => language.toLowerCase().includes(query.trim().toLowerCase()));
   return <View style={{ gap: 10 }}>
     <Text style={{ color: colors.ink, fontSize: 14, fontWeight: "700" }}>{label}</Text>
-    <Pressable accessibilityRole="button" accessibilityLabel={`${label}: ${value}. Change language`} accessibilityState={{ expanded, disabled }} disabled={disabled} onPress={() => setExpanded(!expanded)} style={{ borderWidth: 1, borderColor: colors.line, borderRadius: 14, padding: 14, backgroundColor: "#FAF9FC", flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}><Text style={{ color: colors.accent, fontWeight: "700", fontSize: 15 }}>{value}</Text><Ionicons name={expanded ? "chevron-up" : "chevron-down"} color={colors.accent} size={18} /></Pressable>
+    <Pressable accessibilityRole="button" accessibilityLabel={`${label}: ${value}. Change language`} accessibilityState={{ expanded, disabled }} disabled={disabled} onPress={() => setExpanded(!expanded)} style={{ borderWidth: 1, borderColor: colors.line, borderRadius: 14, padding: 14, backgroundColor: "#F8FAFC", flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}><Text style={{ color: colors.accent, fontWeight: "700", fontSize: 15 }}>{value}</Text><Ionicons name={expanded ? "chevron-up" : "chevron-down"} color={colors.accent} size={18} /></Pressable>
     {expanded && <View style={{ borderWidth: 1, borderColor: colors.line, borderRadius: 14, overflow: "hidden", backgroundColor: "white" }}>
       <TextInput accessibilityLabel={`${label}: Search languages`} placeholder={`Search ${languages.length} languages`} value={query} onChangeText={setQuery} onKeyPress={event => { if (event.nativeEvent.key === "Escape") setExpanded(false); }} style={{ padding: 14, fontSize: 15, color: colors.ink, borderBottomWidth: 1, borderBottomColor: colors.line }} />
       <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled" style={{ maxHeight: 250 }}>
@@ -38,14 +38,14 @@ export function Stars({ rating }: { rating: number }) {
   return <View accessibilityLabel={`${rating} out of 5 stars`} style={{ flexDirection: "row", gap: 2 }}>{[1,2,3,4,5].map(n => <Ionicons key={n} name={n <= rating ? "star" : "star-outline"} size={13} color="#AC7716" />)}</View>;
 }
 const styles = StyleSheet.create({
-  hero: { padding: 24, gap: 12, borderRadius: 26, backgroundColor: colors.navy, overflow: "hidden" },
+  hero: { padding: 24, gap: 12, borderRadius: 22, backgroundColor: colors.navy, overflow: "hidden" },
   eyebrow: { color: "#B7EBDB", fontWeight: "700", fontSize: 11, letterSpacing: 1.7 },
   title: { color: "white", fontWeight: "700", fontSize: 28, lineHeight: 34, letterSpacing: -0.7, maxWidth: 480 },
-  orbit: { position: "absolute", width: 190, height: 190, borderRadius: 95, borderWidth: 28, borderColor: "#40335F", right: -95, top: -75 },
-  orbitSmall: { position: "absolute", width: 70, height: 70, borderRadius: 35, backgroundColor: "#326D6B", right: -15, bottom: -20 },
+  orbit: { position: "absolute", width: 190, height: 190, borderRadius: 95, borderWidth: 1, borderColor: "#527090", right: -95, top: -75 },
+  orbitSmall: { position: "absolute", width: 70, height: 70, borderRadius: 35, backgroundColor: "#3E6489", right: 32, bottom: -38 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chip: { paddingVertical: 12, paddingHorizontal: 16, backgroundColor: "white", borderRadius: 24, borderWidth: 1, borderColor: colors.line },
   chipActive: { backgroundColor: colors.accent, borderColor: colors.accent },
   chipText: { color: colors.muted, fontWeight: "600", fontSize: 14 },
-  language: { paddingVertical: 10, paddingHorizontal: 12, borderRadius: 12, backgroundColor: "#FAF9FC", borderWidth: 1, borderColor: colors.line, minHeight: 40 },
+  language: { paddingVertical: 10, paddingHorizontal: 12, borderRadius: 12, backgroundColor: "#F8FAFC", borderWidth: 1, borderColor: colors.line, minHeight: 40 },
 });

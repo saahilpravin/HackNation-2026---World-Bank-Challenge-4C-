@@ -79,7 +79,7 @@ function OfflineSettings() {
       <Card>
         <Heading>What works offline</Heading>
         <Badge label="Ready on this device" />
-        <Body>Read the bundled sample reviews in ten languages, save drafts and approved replies, edit your business, and manage bookings.</Body>
+        <Body>Read the bundled sample reviews, reopen saved NLLB translations in any previously translated language, save drafts and approved replies, edit your business, and manage bookings.</Body>
         <Muted>Native app records are stored in SQLite. The web preview uses browser storage. The first Expo Go load needs a connection; a standalone installed app is the more reliable offline demo.</Muted>
       </Card>
       <Card>

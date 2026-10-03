@@ -1,3 +1,4 @@
+import { findReviewTranslation, saveReviewTranslation } from "../../ai/translation-cache";
 import { suggestReviewResponse } from "../../ai/review-assistant";
 import type { AssistantOutput } from "../../ai/assistant-contract";
 import { Avatar, LanguagePicker, Stars } from "../../components/studio";
@@ -23,6 +24,7 @@ function ReplyForm() {
   const savedDraft = data?.reviewDrafts?.find(r => r.reviewId === id);
   const validLanguage = (l?: string): ReplyLanguage => replyLanguages.find(v => v === l) ?? "English";
   const [readingLanguage, setReadingLanguage] = useState<ReplyLanguage>(validLanguage(data?.profile?.language));
+  const cachedReading = findReviewTranslation(data?.reviewTranslations, id, review?.text ?? "", validLanguage(review?.language), readingLanguage);
   const [showOriginal, setShowOriginal] = useState(false);
   const [readingTranslation, setReadingTranslation] = useState("");
   const [readingStatus, setReadingStatus] = useState("");
@@ -30,10 +32,12 @@ function ReplyForm() {
   const readingRevision = useRef(0);
   const read = async () => {
     if (!review || readingBusy) return;
+    if (cachedReading) { setReadingTranslation(cachedReading.text); setReadingStatus("Saved NLLB translation · available offline."); return; }
     const version = readingRevision.current;
     setReadingBusy(true); setReadingStatus("Translating review…");
     try {
       const output = await translateOnLaptop(review.text, validLanguage(review.language), readingLanguage, { endpoint: data?.translationEndpoint || "http://127.0.0.1:8085", token: translationToken });
+      await update(d => ({ ...d, reviewTranslations: saveReviewTranslation(d.reviewTranslations, { reviewId: id, sourceText: review.text, from: validLanguage(review.language), to: readingLanguage, text: output.text, modelVersion: output.modelVersion ?? "NLLB", latencyMs: output.latencyMs ?? 0 }) }));
       if (version === readingRevision.current) { setReadingTranslation(output.text); setReadingStatus("NLLB translation · check the original when details matter."); }
     } catch(e) { if (version === readingRevision.current) setReadingStatus(e instanceof Error ? e.message : "Translation unavailable."); }
     finally { setReadingBusy(false); }
@@ -94,11 +98,12 @@ function ReplyForm() {
       <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}><Avatar name={review.guest} /><View style={{ flex: 1, gap: 5 }}><Heading>{review.guest}</Heading><Stars rating={review.rating} /><Muted>{review.language ?? "Language unknown"} · {review.date ?? "Imported review"}</Muted></View></View>
       <Badge label={review.demo ? "Synthetic sample review" : "Imported feedback"} />
       <LanguagePicker label="Read this review in" languages={replyLanguages} value={readingLanguage} onChange={l => { readingRevision.current++; setReadingLanguage(validLanguage(l)); setReadingTranslation(""); setReadingStatus(""); }} />
-      <Body>{readingLanguage === review.language ? review.text : review.fixtureTranslations?.[readingLanguage] ?? (readingTranslation || review.text)}</Body>
-      {readingLanguage !== review.language && !review.fixtureTranslations?.[readingLanguage] && <Button label={readingBusy ? "Translating…" : `Translate review to ${readingLanguage}`} disabled={readingBusy} onPress={() => void read()} secondary />}
+      <Body>{readingLanguage === review.language ? review.text : review.fixtureTranslations?.[readingLanguage] ?? (cachedReading?.text || readingTranslation || review.text)}</Body>
+      {readingLanguage !== review.language && !review.fixtureTranslations?.[readingLanguage] && !cachedReading && <Button label={readingBusy ? "Translating…" : `Translate review to ${readingLanguage}`} disabled={readingBusy} onPress={() => void read()} secondary />}
       {readingLanguage !== review.language && !!review.fixtureTranslations?.[readingLanguage] && <Muted>{readingLanguage === "English" ? "Authored English version of this sample scenario" : "Cached sample translation · NLLB · not human reviewed"}</Muted>}
       {readingLanguage !== review.language && <Button secondary label={showOriginal ? "Hide original review" : "Show original review"} onPress={() => setShowOriginal(!showOriginal)} />}
       {showOriginal && readingLanguage !== review.language && <Body>{review.text}</Body>}
+      {cachedReading && <Muted>Saved NLLB translation · available offline · check meaning before use.</Muted>}
       {!!readingStatus && <Notice text={readingStatus} />}
     </Card>
     {(saved || review.exampleResponse) && <Card><Badge label={saved ? "Approved on this device" : "Example · already answered"} /><Heading>Previous response</Heading><Body>{saved?.translatedText ?? review.exampleResponse?.text}</Body><Muted>{saved?.approvedAt.slice(0,10) ?? review.exampleResponse?.respondedAt} · {saved?.customerLanguage ?? review.exampleResponse?.language}</Muted></Card>}

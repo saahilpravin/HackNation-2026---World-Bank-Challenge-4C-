@@ -308,7 +308,7 @@ export const s = StyleSheet.create({
   page: {
     padding: 20,
     gap: 18,
-    maxWidth: 700,
+    maxWidth: 980,
     width: "100%",
     alignSelf: "center",
     paddingBottom: 28,
@@ -327,7 +327,7 @@ export const s = StyleSheet.create({
     marginBottom: 10,
   },
   title: {
-    fontSize: 30,
+    fontSize: 32,
     fontWeight: "700",
     color: colors.ink,
     letterSpacing: -0.5,
@@ -342,7 +342,7 @@ export const s = StyleSheet.create({
   },
   card: {
     padding: 20,
-    borderRadius: 23,
+    borderRadius: 18,
     backgroundColor: "white",
     borderWidth: 1,
     borderColor: colors.line,
@@ -364,7 +364,7 @@ export const s = StyleSheet.create({
     padding: 16,
     minHeight: 52,
   },
-  secondary: { backgroundColor: colors.lavender },
+  secondary: { backgroundColor: colors.lavender, borderWidth: 1, borderColor: "#DDE5FC" },
   label: { fontSize: 14, fontWeight: "700", color: colors.ink },
   input: {
     backgroundColor: "white",
@@ -375,7 +375,7 @@ export const s = StyleSheet.create({
     fontSize: 16,
     color: colors.ink,
   },
-  notice: { padding: 16, backgroundColor: "#EEEAF5", borderRadius: 14 },
+  notice: { padding: 16, backgroundColor: "#EDF1F6", borderRadius: 14 },
   row: { flexDirection: "row", gap: 12 },
   hero: { padding: 22, borderRadius: 18, backgroundColor: "#EDF1FF", gap: 12 },
   heroTitle: {
