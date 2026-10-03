@@ -1,0 +1,350 @@
+id,text,language,rating,labels,source,group
+seed-1,Quick review: the guide explained each step so clearly!,en,5,guide+,synthetic,seed-1
+seed-2,The guide barely spoke to us Ok.,en,1,guide-,synthetic,seed-2
+seed-3,The freshly roasted coffee was amazing Thanks.,en,5,coffee_tasting+,synthetic,seed-3
+seed-4,The coffee tasted burnt,en,1,coffee_tasting-,synthetic,seed-4
+seed-5,Very good value for the price!,en,5,price_value+,synthetic,seed-5
+seed-6,Update: way too expensive for what we got,en,1,price_value-,synthetic,seed-6
+seed-7,Communication was excellent!,en,5,communication+,synthetic,seed-7
+seed-8,Language barrier made booking difficult,en,1,communication-,synthetic,seed-8
+seed-9,"Overall, plenty of seats and clean washrooms Just my opinion.",en,5,facilities+,synthetic,seed-9
+seed-10,No clean water or washrooms Thanks.,en,1,facilities-,synthetic,seed-10
+seed-11,Update: easy to find and the road was fine,en,5,access_transport+,synthetic,seed-11
+seed-12,Far from town with no clear signs Ok.,en,1,access_transport-,synthetic,seed-12
+seed-13,"Honestly, fresh maize and beans for lunch were lovely!",en,5,food+,synthetic,seed-13
+seed-14,"Honestly, the meal was disappointing",en,1,food-,synthetic,seed-14
+seed-15,We visited in July. the whole place has a lovely atmosphere Ok.,en,5,other+,synthetic,seed-15
+seed-16,"Honestly, the rain ruined the day Thanks.",en,1,other-,synthetic,seed-16
+seed-17,"Overall, such a warm and knowledgeable host",en,5,guide+,synthetic,seed-17
+seed-18,The guide was rude to some of the group,en,1,guide-,synthetic,seed-18
+seed-19,"Overall, the tasting session taught us so much about flavour Just my opinion.",en,5,coffee_tasting+,synthetic,seed-19
+seed-20,Update: we only got one tiny sample to try!,en,1,coffee_tasting-,synthetic,seed-20
+seed-21,Went with my family. cheap for such a rich experience.,en,5,price_value+,synthetic,seed-21
+seed-22,"Overall, not worth the money Just my opinion.",en,1,price_value-,synthetic,seed-22
+seed-23,"Overall, booking was easy and replies were quick Thanks.",en,5,communication+,synthetic,seed-23
+seed-24,We visited in July. language barrier made booking difficult!,en,1,communication-,synthetic,seed-24
+seed-25,Quick review: plenty of seats and clean washrooms!,en,5,facilities+,synthetic,seed-25
+seed-26,We visited in July. no clean water or washrooms,en,1,facilities-,synthetic,seed-26
+seed-27,Good road all the way!,en,5,access_transport+,synthetic,seed-27
+seed-28,"Honestly, no taxis would take us up the hill",en,1,access_transport-,synthetic,seed-28
+seed-29,Went with my family. the homemade food was a treat,en,5,food+,synthetic,seed-29
+seed-30,The meal was disappointing Thanks.,en,1,food-,synthetic,seed-30
+seed-31,Quick review: would definitely come back Just my opinion.,en,5,other+,synthetic,seed-31
+seed-32,Quick review: a disappointing visit overall!,en,1,other-,synthetic,seed-32
+seed-33,Went with my family. our guide was friendly and knew everything about coffee Ok.,en,5,guide+,synthetic,seed-33
+seed-34,The guide could not answer simple questions!,en,1,guide-,synthetic,seed-34
+seed-35,The coffee tasting was the highlight Just my opinion.,en,5,coffee_tasting+,synthetic,seed-35
+seed-36,We visited in July. the tasting felt rushed and boring Thanks.,en,1,coffee_tasting-,synthetic,seed-36
+seed-37,Went with my family. cheap for such a rich experience Just my opinion.,en,5,price_value+,synthetic,seed-37
+seed-38,Update: poor value for money.,en,1,price_value-,synthetic,seed-38
+seed-39,Very clear instructions before the visit.,en,5,communication+,synthetic,seed-39
+seed-40,"Honestly, language barrier made booking difficult",en,1,communication-,synthetic,seed-40
+seed-41,Went with my family. the toilets were clean and there was shade to sit in,en,5,facilities+,synthetic,seed-41
+seed-42,We visited in July. no shade and nowhere to sit Just my opinion.,en,1,facilities-,synthetic,seed-42
+seed-43,"Overall, simple to reach by taxi!",en,5,access_transport+,synthetic,seed-43
+seed-44,Went with my family. the road was terrible and we got lost,en,1,access_transport-,synthetic,seed-44
+seed-45,Went with my family. the homemade food was a treat Thanks.,en,5,food+,synthetic,seed-45
+seed-46,We visited in July. lunch was tiny and not what we ordered Ok.,en,1,food-,synthetic,seed-46
+seed-47,Update: the whole place has a lovely atmosphere.,en,5,other+,synthetic,seed-47
+seed-48,Update: it felt more touristy than expected Just my opinion.,en,1,other-,synthetic,seed-48
+seed-49,Update: the guide explained each step so clearly,en,5,guide+,synthetic,seed-49
+seed-50,Our guide seemed bored and rushed,en,1,guide-,synthetic,seed-50
+seed-51,"Overall, the roasting demo was fascinating",en,5,coffee_tasting+,synthetic,seed-51
+seed-52,The roasting demo was skipped Ok.,en,1,coffee_tasting-,synthetic,seed-52
+seed-53,"Honestly, cheap for such a rich experience.",en,5,price_value+,synthetic,seed-53
+seed-54,Not worth the money!,en,1,price_value-,synthetic,seed-54
+seed-55,Quick review: communication was excellent Thanks.,en,5,communication+,synthetic,seed-55
+seed-56,Quick review: the confirmation never arrived Just my opinion.,en,1,communication-,synthetic,seed-56
+seed-57,Nice shaded area for resting Ok.,en,5,facilities+,synthetic,seed-57
+seed-58,Update: the site was dirty and neglected!,en,1,facilities-,synthetic,seed-58
+seed-59,Update: easy to find and the road was fine!,en,5,access_transport+,synthetic,seed-59
+seed-60,Update: the road was terrible and we got lost,en,1,access_transport-,synthetic,seed-60
+seed-61,Loved the local snacks they served!,en,5,food+,synthetic,seed-61
+seed-62,"Honestly, the food was cold and bland.",en,1,food-,synthetic,seed-62
+seed-63,A lovely peaceful place,en,5,other+,synthetic,seed-63
+seed-64,"Honestly, a disappointing visit overall",en,1,other-,synthetic,seed-64
+seed-65,"Quick review: great storyteller, our guide",en,5,guide+,synthetic,seed-65
+seed-66,Our guide seemed bored and rushed Thanks.,en,1,guide-,synthetic,seed-66
+seed-67,Update: loved picking and roasting the beans ourselves Just my opinion.,en,5,coffee_tasting+,synthetic,seed-67
+seed-68,We visited in July. we only got one tiny sample to try Thanks.,en,1,coffee_tasting-,synthetic,seed-68
+seed-69,Quick review: fair price and nothing hidden,en,5,price_value+,synthetic,seed-69
+seed-70,They charged extra for everything!,en,1,price_value-,synthetic,seed-70
+seed-71,Went with my family. very clear instructions before the visit.,en,5,communication+,synthetic,seed-71
+seed-72,The confirmation never arrived,en,1,communication-,synthetic,seed-72
+seed-73,Quick review: plenty of seats and clean washrooms.,en,5,facilities+,synthetic,seed-73
+seed-74,Went with my family. very few seats for older visitors,en,1,facilities-,synthetic,seed-74
+seed-75,The directions were spot on and parking was easy Thanks.,en,5,access_transport+,synthetic,seed-75
+seed-76,Quick review: very hard to find without a local Just my opinion.,en,1,access_transport-,synthetic,seed-76
+seed-77,Great tea and fresh fruit.,en,5,food+,synthetic,seed-77
+seed-78,We waited ages for food Ok.,en,1,food-,synthetic,seed-78
+seed-79,We visited in July. the whole place has a lovely atmosphere.,en,5,other+,synthetic,seed-79
+seed-80,"Honestly, it felt more touristy than expected Ok.",en,1,other-,synthetic,seed-80
+seed-81,"Overall, great storyteller, our guide Thanks.",en,5,guide+,synthetic,seed-81
+seed-82,Quick review: i could not understand the guide at all,en,1,guide-,synthetic,seed-82
+seed-83,"Overall, loved picking and roasting the beans ourselves Ok.",en,5,coffee_tasting+,synthetic,seed-83
+seed-84,Update: the tasting felt rushed and boring Ok.,en,1,coffee_tasting-,synthetic,seed-84
+seed-85,"Overall, totally worth every shilling Thanks.",en,5,price_value+,synthetic,seed-85
+seed-86,Went with my family. the price was higher than advertised Just my opinion.,en,1,price_value-,synthetic,seed-86
+seed-87,Booking was easy and replies were quick Ok.,en,5,communication+,synthetic,seed-87
+seed-88,We visited in July. no one told us what to bring.,en,1,communication-,synthetic,seed-88
+seed-89,"Overall, plenty of seats and clean washrooms Thanks.",en,5,facilities+,synthetic,seed-89
+seed-90,Quick review: the site was dirty and neglected Ok.,en,1,facilities-,synthetic,seed-90
+seed-91,Quick review: short ride from town on a decent road,en,5,access_transport+,synthetic,seed-91
+seed-92,"Overall, the road was terrible and we got lost",en,1,access_transport-,synthetic,seed-92
+seed-93,Went with my family. loved the local snacks they served.,en,5,food+,synthetic,seed-93
+seed-94,"Overall, the snacks ran out before we got any Thanks.",en,1,food-,synthetic,seed-94
+seed-95,A memorable day out Just my opinion.,en,5,other+,synthetic,seed-95
+seed-96,Quick review: would not recommend,en,1,other-,synthetic,seed-96
+seed-97,The guide made the whole visit fun Ok.,en,5,guide+,synthetic,seed-97
+seed-98,"Overall, the guide was late and unprepared",en,1,guide-,synthetic,seed-98
+seed-99,Update: the roasting demo was fascinating.,en,5,coffee_tasting+,synthetic,seed-99
+seed-100,The tasting felt rushed and boring!,en,1,coffee_tasting-,synthetic,seed-100
+seed-101,Went with my family. fair price and nothing hidden Just my opinion.,en,5,price_value+,synthetic,seed-101
+seed-102,Poor value for money,en,1,price_value-,synthetic,seed-102
+seed-103,"Honestly, they sent clear directions and confirmed everything",en,5,communication+,synthetic,seed-103
+seed-104,"Honestly, language barrier made booking difficult!",en,1,communication-,synthetic,seed-104
+seed-105,"Honestly, the facilities were spotless Ok.",en,5,facilities+,synthetic,seed-105
+seed-106,Went with my family. very few seats for older visitors.,en,1,facilities-,synthetic,seed-106
+seed-107,"Honestly, good road all the way Thanks.",en,5,access_transport+,synthetic,seed-107
+seed-108,"Honestly, the road was terrible and we got lost",en,1,access_transport-,synthetic,seed-108
+seed-109,Great tea and fresh fruit Just my opinion.,en,5,food+,synthetic,seed-109
+seed-110,"Honestly, the snacks ran out before we got any Ok.",en,1,food-,synthetic,seed-110
+seed-111,"Overall, beautiful views over the highlands",en,5,other+,synthetic,seed-111
+seed-112,We visited in July. it was too crowded for us.,en,1,other-,synthetic,seed-112
+seed-113,"Overall, great storyteller, our guide.",en,5,guide+,synthetic,seed-113
+seed-114,We visited in July. the guide was rude to some of the group!,en,1,guide-,synthetic,seed-114
+seed-115,"Honestly, the coffee tasting was the highlight Just my opinion.",en,5,coffee_tasting+,synthetic,seed-115
+seed-116,Quick review: the roasting demo was skipped Just my opinion.,en,1,coffee_tasting-,synthetic,seed-116
+seed-117,Update: great value for a half day,en,5,price_value+,synthetic,seed-117
+seed-118,"Honestly, overpriced for a short visit Thanks.",en,1,price_value-,synthetic,seed-118
+seed-119,Very clear instructions before the visit Ok.,en,5,communication+,synthetic,seed-119
+seed-120,"Honestly, the confirmation never arrived",en,1,communication-,synthetic,seed-120
+seed-121,Went with my family. the facilities were spotless Just my opinion.,en,5,facilities+,synthetic,seed-121
+seed-122,No clean water or washrooms,en,1,facilities-,synthetic,seed-122
+seed-123,Quick review: the farm was easy to find Thanks.,en,5,access_transport+,synthetic,seed-123
+seed-124,Went with my family. the road was terrible and we got lost Thanks.,en,1,access_transport-,synthetic,seed-124
+seed-125,Loved the local snacks they served,en,5,food+,synthetic,seed-125
+seed-126,We visited in July. the food was cold and bland Ok.,en,1,food-,synthetic,seed-126
+seed-127,The whole place has a lovely atmosphere!,en,5,other+,synthetic,seed-127
+seed-128,The rain ruined the day!,en,1,other-,synthetic,seed-128
+seed-129,"Quick review: great storyteller, our guide Thanks.",en,5,guide+,synthetic,seed-129
+seed-130,"Overall, i could not understand the guide at all.",en,1,guide-,synthetic,seed-130
+seed-131,Went with my family. best cup of coffee of the whole trip Thanks.,en,5,coffee_tasting+,synthetic,seed-131
+seed-132,Went with my family. the coffee tasted burnt,en,1,coffee_tasting-,synthetic,seed-132
+seed-133,We visited in July. great value for a half day,en,5,price_value+,synthetic,seed-133
+seed-134,Went with my family. not worth the money!,en,1,price_value-,synthetic,seed-134
+seed-135,Very clear instructions before the visit!,en,5,communication+,synthetic,seed-135
+seed-136,Quick review: nobody replied to our booking message Just my opinion.,en,1,communication-,synthetic,seed-136
+seed-137,"Overall, nice shaded area for resting",en,5,facilities+,synthetic,seed-137
+seed-138,"Overall, very few seats for older visitors.",en,1,facilities-,synthetic,seed-138
+seed-139,The directions were spot on and parking was easy Just my opinion.,en,5,access_transport+,synthetic,seed-139
+seed-140,Quick review: very hard to find without a local.,en,1,access_transport-,synthetic,seed-140
+seed-141,"Honestly, the homemade food was a treat",en,5,food+,synthetic,seed-141
+seed-142,The snacks ran out before we got any!,en,1,food-,synthetic,seed-142
+seed-143,"Honestly, highly recommend to anyone visiting Ok.",en,5,other+,synthetic,seed-143
+seed-144,"Overall, it was too crowded for us Just my opinion.",en,1,other-,synthetic,seed-144
+seed-145,"Update: great storyteller, our guide!",en,5,guide+,synthetic,seed-145
+seed-146,Quick review: the guide was late and unprepared,en,1,guide-,synthetic,seed-146
+seed-147,Quick review: the freshly roasted coffee was amazing,en,5,coffee_tasting+,synthetic,seed-147
+seed-148,Quick review: the tasting was too short.,en,1,coffee_tasting-,synthetic,seed-148
+seed-149,Fair price and nothing hidden.,en,5,price_value+,synthetic,seed-149
+seed-150,We visited in July. overpriced for a short visit,en,1,price_value-,synthetic,seed-150
+seed-151,They sent clear directions and confirmed everything,en,5,communication+,synthetic,seed-151
+seed-152,We got conflicting information about the time.,en,1,communication-,synthetic,seed-152
+seed-153,Comfortable seating and a very clean site.,en,5,facilities+,synthetic,seed-153
+seed-154,"Honestly, the site was dirty and neglected Ok.",en,1,facilities-,synthetic,seed-154
+seed-155,We visited in July. simple to reach by taxi,en,5,access_transport+,synthetic,seed-155
+seed-156,Went with my family. we got lost twice on the way.,en,1,access_transport-,synthetic,seed-156
+seed-157,Fresh maize and beans for lunch were lovely,en,5,food+,synthetic,seed-157
+seed-158,"Honestly, the snacks ran out before we got any",en,1,food-,synthetic,seed-158
+seed-159,We visited in July. a lovely peaceful place Just my opinion.,en,5,other+,synthetic,seed-159
+seed-160,It felt more touristy than expected,en,1,other-,synthetic,seed-160
+seed-161,"Overall, our guide was friendly and knew everything about coffee.",en,5,guide+,synthetic,seed-161
+seed-162,The guide was late and unprepared,en,1,guide-,synthetic,seed-162
+seed-163,Quick review: best cup of coffee of the whole trip!,en,5,coffee_tasting+,synthetic,seed-163
+seed-164,We visited in July. the coffee tasted burnt,en,1,coffee_tasting-,synthetic,seed-164
+seed-165,Great value for a half day Just my opinion.,en,5,price_value+,synthetic,seed-165
+seed-166,"Overall, way too expensive for what we got",en,1,price_value-,synthetic,seed-166
+seed-167,We visited in July. booking was easy and replies were quick,en,5,communication+,synthetic,seed-167
+seed-168,"Overall, we got conflicting information about the time Just my opinion.",en,1,communication-,synthetic,seed-168
+seed-169,We visited in July. the facilities were spotless Ok.,en,5,facilities+,synthetic,seed-169
+seed-170,"Overall, felt unsafe on the steep path!",en,1,facilities-,synthetic,seed-170
+seed-171,"Honestly, short ride from town on a decent road.",en,5,access_transport+,synthetic,seed-171
+seed-172,No taxis would take us up the hill,en,1,access_transport-,synthetic,seed-172
+seed-173,The lunch was delicious and plentiful Just my opinion.,en,5,food+,synthetic,seed-173
+seed-174,"Overall, the meal was disappointing!",en,1,food-,synthetic,seed-174
+seed-175,"Overall, a memorable day out",en,5,other+,synthetic,seed-175
+seed-176,Update: would not recommend!,en,1,other-,synthetic,seed-176
+seed-177,"Update: great storyteller, our guide.",en,5,guide+,synthetic,seed-177
+seed-178,"Overall, our guide seemed bored and rushed.",en,1,guide-,synthetic,seed-178
+seed-179,"Overall, the roasting demo was fascinating Just my opinion.",en,5,coffee_tasting+,synthetic,seed-179
+seed-180,"Honestly, the roasting demo was skipped.",en,1,coffee_tasting-,synthetic,seed-180
+seed-181,Totally worth every shilling,en,5,price_value+,synthetic,seed-181
+seed-182,Poor value for money Just my opinion.,en,1,price_value-,synthetic,seed-182
+seed-183,We visited in July. very clear instructions before the visit,en,5,communication+,synthetic,seed-183
+seed-184,Nobody replied to our booking message Just my opinion.,en,1,communication-,synthetic,seed-184
+seed-185,Update: the facilities were spotless Just my opinion.,en,5,facilities+,synthetic,seed-185
+seed-186,We visited in July. the toilets were dirty!,en,1,facilities-,synthetic,seed-186
+seed-187,"Honestly, the directions were spot on and parking was easy.",en,5,access_transport+,synthetic,seed-187
+seed-188,Went with my family. the road was terrible and we got lost.,en,1,access_transport-,synthetic,seed-188
+seed-189,Quick review: fresh maize and beans for lunch were lovely Thanks.,en,5,food+,synthetic,seed-189
+seed-190,Quick review: lunch was tiny and not what we ordered,en,1,food-,synthetic,seed-190
+seed-191,We visited in July. beautiful views over the highlands.,en,5,other+,synthetic,seed-191
+seed-192,"Honestly, the rain ruined the day.",en,1,other-,synthetic,seed-192
+seed-193,"Went with my family. fresh maize and beans for lunch were lovely, but the guide was rude to some of the group Just my opinion.",en,3,food+|guide-,synthetic,seed-193
+seed-194,"Booking was easy and replies were quick, but we only got one tiny sample to try Ok.",en,3,communication+|coffee_tasting-,synthetic,seed-194
+seed-195,"Update: best cup of coffee of the whole trip, but the rain ruined the day!",en,3,coffee_tasting+|other-,synthetic,seed-195
+seed-196,We visited in July. the guide answered all our questions patiently and totally worth every shilling,en,5,guide+|price_value+,synthetic,seed-196
+seed-197,Update: cheap for such a rich experience and the farm was easy to find!,en,5,price_value+|access_transport+,synthetic,seed-197
+seed-198,"Honestly, very good value for the price, but would not recommend Thanks.",en,3,price_value+|other-,synthetic,seed-198
+seed-199,"Honestly, the meal was disappointing and far from town with no clear signs Thanks.",en,1,food-|access_transport-,synthetic,seed-199
+seed-200,"Overall, our guide was friendly and knew everything about coffee, but the food was cold and bland",en,3,guide+|food-,synthetic,seed-200
+seed-201,Quick review: very good value for the price and simple to reach by taxi Ok.,en,5,price_value+|access_transport+,synthetic,seed-201
+seed-202,Highly recommend to anyone visiting and the toilets were clean and there was shade to sit in Just my opinion.,en,5,other+|facilities+,synthetic,seed-202
+seed-203,We visited in July. nobody replied to our booking message and not what we had hoped for Ok.,en,1,communication-|other-,synthetic,seed-203
+seed-204,"The roasting demo was fascinating, but far from town with no clear signs",en,3,coffee_tasting+|access_transport-,synthetic,seed-204
+seed-205,"It felt more touristy than expected, but totally worth every shilling Just my opinion.",en,3,other-|price_value+,synthetic,seed-205
+seed-206,"Went with my family. very clear instructions before the visit, but the roasting demo was skipped",en,3,communication+|coffee_tasting-,synthetic,seed-206
+seed-207,"No clean water or washrooms, but the meal was generous and tasty Just my opinion.",en,3,facilities-|food+,synthetic,seed-207
+seed-208,"Honestly, the host answered our messages within minutes, but the guide could not answer simple questions Just my opinion.",en,3,communication+|guide-,synthetic,seed-208
+seed-209,"Honestly, the toilets were dirty and not what we had hoped for",en,1,facilities-|other-,synthetic,seed-209
+seed-210,"Would not recommend, but totally worth every shilling Just my opinion.",en,3,other-|price_value+,synthetic,seed-210
+seed-211,"We visited in July. not what we had hoped for, but fair price and nothing hidden!",en,3,other-|price_value+,synthetic,seed-211
+seed-212,"Overall, we only got one tiny sample to try, but a lovely peaceful place!",en,3,coffee_tasting-|other+,synthetic,seed-212
+seed-213,Went with my family. our guide was friendly and knew everything about coffee and great value for a half day!,en,5,guide+|price_value+,synthetic,seed-213
+seed-214,"Overall, comfortable seating and a very clean site and booking was easy and replies were quick Thanks.",en,5,facilities+|communication+,synthetic,seed-214
+seed-215,"We visited in July. the freshly roasted coffee was amazing, but it was too crowded for us Thanks.",en,3,coffee_tasting+|other-,synthetic,seed-215
+seed-216,Plenty of seats and clean washrooms and would definitely come back,en,5,facilities+|other+,synthetic,seed-216
+seed-217,"It was too crowded for us, but booking was easy and replies were quick!",en,3,other-|communication+,synthetic,seed-217
+seed-218,We visited in July. highly recommend to anyone visiting and they sent clear directions and confirmed everything!,en,5,other+|communication+,synthetic,seed-218
+seed-219,"Quick review: the road was terrible and we got lost, but the host answered our messages within minutes",en,3,access_transport-|communication+,synthetic,seed-219
+seed-220,Quick review: simple to reach by taxi and the lunch was delicious and plentiful,en,5,access_transport+|food+,synthetic,seed-220
+seed-221,We visited in July. such a warm and knowledgeable host and would definitely come back,en,5,guide+|other+,synthetic,seed-221
+seed-222,Fresh maize and beans for lunch were lovely and very clear instructions before the visit Ok.,en,5,food+|communication+,synthetic,seed-222
+seed-223,"Felt safe and well organised, but the food was cold and bland",en,3,facilities+|food-,synthetic,seed-223
+seed-224,"Honestly, no shade and nowhere to sit, but short ride from town on a decent road!",en,3,facilities-|access_transport+,synthetic,seed-224
+seed-225,"Quick review: simple to reach by taxi, but the tasting was too short Ok.",en,3,access_transport+|coffee_tasting-,synthetic,seed-225
+seed-226,"Overall, the meal was generous and tasty and a lovely peaceful place",en,5,food+|other+,synthetic,seed-226
+seed-227,"Honestly, we waited ages for food and we got conflicting information about the time!",en,1,food-|communication-,synthetic,seed-227
+seed-228,"Honestly, our guide seemed bored and rushed, but a memorable day out!",en,3,guide-|other+,synthetic,seed-228
+seed-229,We visited in July. short ride from town on a decent road and the price was more than reasonable Just my opinion.,en,5,access_transport+|price_value+,synthetic,seed-229
+seed-230,"Overall, felt safe and well organised and very clear instructions before the visit Thanks.",en,5,facilities+|communication+,synthetic,seed-230
+seed-231,"Honestly, the meal was generous and tasty, but our guide seemed bored and rushed",en,3,food+|guide-,synthetic,seed-231
+seed-232,Went with my family. communication was excellent and comfortable seating and a very clean site!,en,5,communication+|facilities+,synthetic,seed-232
+seed-233,Went with my family. simple to reach by taxi and loved the local snacks they served Thanks.,en,5,access_transport+|food+,synthetic,seed-233
+seed-234,"They sent clear directions and confirmed everything, but we only got one tiny sample to try Thanks.",en,3,communication+|coffee_tasting-,synthetic,seed-234
+seed-235,"Overall, the freshly roasted coffee was amazing, but the price was higher than advertised Ok.",en,3,coffee_tasting+|price_value-,synthetic,seed-235
+seed-236,They confirmed our booking right away and a memorable day out!,en,5,communication+|other+,synthetic,seed-236
+seed-237,"Overall, the snacks ran out before we got any and no taxis would take us up the hill.",en,1,food-|access_transport-,synthetic,seed-237
+seed-238,We visited in July. the guide was rude to some of the group and we got conflicting information about the time,en,1,guide-|communication-,synthetic,seed-238
+seed-239,"We visited in July. they sent clear directions and confirmed everything, but the guide was late and unprepared!",en,3,communication+|guide-,synthetic,seed-239
+seed-240,We visited in July. a lovely peaceful place and they sent clear directions and confirmed everything,en,5,other+|communication+,synthetic,seed-240
+seed-241,Went with my family. the meal was disappointing and the track was muddy and almost impassable,en,1,food-|access_transport-,synthetic,seed-241
+seed-242,Went with my family. the tasting session taught us so much about flavour and they sent clear directions and confirmed everything Ok.,en,5,coffee_tasting+|communication+,synthetic,seed-242
+seed-243,"Honestly, the coffee was cold and bitter and a disappointing visit overall Just my opinion.",en,1,coffee_tasting-|other-,synthetic,seed-243
+seed-244,Went with my family. the tasting was too short and the meal was disappointing Ok.,en,1,coffee_tasting-|food-,synthetic,seed-244
+seed-245,"The price was more than reasonable, but the tasting felt rushed and boring.",en,3,price_value+|coffee_tasting-,synthetic,seed-245
+seed-246,We visited in July. great value for a half day and the farm was easy to find!,en,5,price_value+|access_transport+,synthetic,seed-246
+seed-247,We only got one tiny sample to try and the guide was rude to some of the group Thanks.,en,1,coffee_tasting-|guide-,synthetic,seed-247
+seed-248,"We visited in July. they sent clear directions and confirmed everything, but a disappointing visit overall",en,3,communication+|other-,synthetic,seed-248
+seed-249,We visited in July. the guide made the whole visit fun and felt safe and well organised.,en,5,guide+|facilities+,synthetic,seed-249
+seed-250,"Overall, language barrier made booking difficult and it was too crowded for us",en,1,communication-|other-,synthetic,seed-250
+seed-251,We visited in July. the food was cold and bland and the road was terrible and we got lost,en,1,food-|access_transport-,synthetic,seed-251
+seed-252,We visited in July. lunch was tiny and not what we ordered and i could not understand the guide at all!,en,1,food-|guide-,synthetic,seed-252
+seed-253,Went with my family. the road was terrible and we got lost and the tasting felt rushed and boring.,en,1,access_transport-|coffee_tasting-,synthetic,seed-253
+seed-254,Update: lunch was tiny and not what we ordered and way too expensive for what we got Ok.,en,1,food-|price_value-,synthetic,seed-254
+seed-255,No shade and nowhere to sit and the track was muddy and almost impassable,en,1,facilities-|access_transport-,synthetic,seed-255
+seed-256,"Overall, no shade and nowhere to sit, but the homemade food was a treat",en,3,facilities-|food+,synthetic,seed-256
+seed-257,We visited in July. the toilets were clean and there was shade to sit in and great tea and fresh fruit!,en,5,facilities+|food+,synthetic,seed-257
+seed-258,"Overall, they charged extra for everything, but a memorable day out Just my opinion.",en,3,price_value-|other+,synthetic,seed-258
+seed-259,"Honestly, the guide was late and unprepared and the toilets were dirty",en,1,guide-|facilities-,synthetic,seed-259
+seed-260,"Honestly, the guide made the whole visit fun, but the toilets were dirty Just my opinion.",en,3,guide+|facilities-,synthetic,seed-260
+seed-261,"Update: the guide was late and unprepared, but the roasting demo was fascinating.",en,3,guide-|coffee_tasting+,synthetic,seed-261
+seed-262,"Honestly, we only got one tiny sample to try and our guide seemed bored and rushed",en,1,coffee_tasting-|guide-,synthetic,seed-262
+seed-263,We visited in July. highly recommend to anyone visiting and the guide answered all our questions patiently!,en,5,other+|guide+,synthetic,seed-263
+seed-264,Went with my family. very hard to find without a local and way too expensive for what we got,en,1,access_transport-|price_value-,synthetic,seed-264
+seed-265,The freshly roasted coffee was amazing and fair price and nothing hidden,en,5,coffee_tasting+|price_value+,synthetic,seed-265
+seed-266,"Quick review: the host answered our messages within minutes, but not what we had hoped for",en,3,communication+|other-,synthetic,seed-266
+seed-267,Went with my family. our guide seemed bored and rushed and no taxis would take us up the hill Thanks.,en,1,guide-|access_transport-,synthetic,seed-267
+seed-268,"Quick review: would definitely come back, but the tasting felt rushed and boring!",en,3,other+|coffee_tasting-,synthetic,seed-268
+seed-269,Update: the guide explained each step so clearly and the farm was easy to find Ok.,en,5,guide+|access_transport+,synthetic,seed-269
+seed-270,Update: the lunch was delicious and plentiful and the guide made the whole visit fun,en,5,food+|guide+,synthetic,seed-270
+seed-271,"Overall, i could not understand the guide at all, but very good value for the price Thanks.",en,3,guide-|price_value+,synthetic,seed-271
+seed-272,"We visited in July. short ride from town on a decent road, but overpriced for a short visit",en,3,access_transport+|price_value-,synthetic,seed-272
+seed-273,"Quick review: felt safe and well organised, but no taxis would take us up the hill",en,3,facilities+|access_transport-,synthetic,seed-273
+seed-274,"Overall, the coffee tasting was the highlight and the guide made the whole visit fun Just my opinion.",en,5,coffee_tasting+|guide+,synthetic,seed-274
+seed-275,Update: would definitely come back and the homemade food was a treat Ok.,en,5,other+|food+,synthetic,seed-275
+seed-276,"Went with my family. it was too crowded for us, but the coffee tasting was the highlight Ok.",en,3,other-|coffee_tasting+,synthetic,seed-276
+seed-277,"Honestly, no clean water or washrooms and lunch was tiny and not what we ordered.",en,1,facilities-|food-,synthetic,seed-277
+seed-278,"Quick review: good road all the way, but nobody replied to our booking message Thanks.",en,3,access_transport+|communication-,synthetic,seed-278
+seed-279,"Honestly, they sent clear directions and confirmed everything, but not what we had hoped for",en,3,communication+|other-,synthetic,seed-279
+seed-280,Quick review: our guide seemed bored and rushed and no one told us what to bring,en,1,guide-|communication-,synthetic,seed-280
+seed-281,Loved picking and roasting the beans ourselves and very good value for the price!,en,5,coffee_tasting+|price_value+,synthetic,seed-281
+seed-282,Went with my family. it was too crowded for us and very hard to find without a local,en,1,other-|access_transport-,synthetic,seed-282
+seed-283,"Overall, we waited ages for food and language barrier made booking difficult Ok.",en,1,food-|communication-,synthetic,seed-283
+seed-284,"We visited in July. we only got one tiny sample to try, but fresh maize and beans for lunch were lovely Thanks.",en,3,coffee_tasting-|food+,synthetic,seed-284
+seed-285,"We visited in July. plenty of seats and clean washrooms, but the price was higher than advertised",en,3,facilities+|price_value-,synthetic,seed-285
+seed-286,"Honestly, beautiful views over the highlands, but the coffee was cold and bitter",en,3,other+|coffee_tasting-,synthetic,seed-286
+seed-287,"Overall, felt unsafe on the steep path, but a lovely peaceful place!",en,3,facilities-|other+,synthetic,seed-287
+seed-288,"Overall, plenty of seats and clean washrooms, but the tasting was too short Just my opinion.",en,3,facilities+|coffee_tasting-,synthetic,seed-288
+seed-289,A lovely peaceful place and the guide made the whole visit fun Ok.,en,5,other+|guide+,synthetic,seed-289
+seed-290,Went with my family. we got conflicting information about the time and the food was cold and bland.,en,1,communication-|food-,synthetic,seed-290
+seed-291,The confirmation never arrived and the guide was rude to some of the group Ok.,en,1,communication-|guide-,synthetic,seed-291
+seed-292,The host answered our messages within minutes and the whole place has a lovely atmosphere Ok.,en,5,communication+|other+,synthetic,seed-292
+seed-293,We visited in July. poor value for money and nobody replied to our booking message,en,1,price_value-|communication-,synthetic,seed-293
+seed-294,No taxis would take us up the hill and we only got one tiny sample to try,en,1,access_transport-|coffee_tasting-,synthetic,seed-294
+seed-295,We visited in July. the guide barely spoke to us and the coffee tasted burnt Just my opinion.,en,1,guide-|coffee_tasting-,synthetic,seed-295
+seed-296,"The host answered our messages within minutes, but the snacks ran out before we got any Just my opinion.",en,3,communication+|food-,synthetic,seed-296
+seed-297,"We visited in July. the road was terrible and we got lost, but loved picking and roasting the beans ourselves",en,3,access_transport-|coffee_tasting+,synthetic,seed-297
+seed-298,"Went with my family. the rain ruined the day, but nice shaded area for resting",en,3,other-|facilities+,synthetic,seed-298
+seed-299,"Honestly, the meal was generous and tasty and good road all the way",en,5,food+|access_transport+,synthetic,seed-299
+seed-300,"We visited in July. they charged extra for everything, but the host answered our messages within minutes Just my opinion.",en,3,price_value-|communication+,synthetic,seed-300
+seed-301,"Felt unsafe on the steep path, but they confirmed our booking right away Thanks.",en,3,facilities-|communication+,synthetic,seed-301
+seed-302,"Update: the road was terrible and we got lost, but the host answered our messages within minutes Just my opinion.",en,3,access_transport-|communication+,synthetic,seed-302
+seed-303,"Update: they sent clear directions and confirmed everything, but the rain ruined the day!",en,3,communication+|other-,synthetic,seed-303
+seed-304,"Way too expensive for what we got, but very clear instructions before the visit Thanks.",en,3,price_value-|communication+,synthetic,seed-304
+seed-305,"Honestly, very hard to find without a local and nobody replied to our booking message",en,1,access_transport-|communication-,synthetic,seed-305
+seed-306,Update: very good value for the price and good road all the way Thanks.,en,5,price_value+|access_transport+,synthetic,seed-306
+seed-307,"Honestly, very hard to find without a local and it felt more touristy than expected.",en,1,access_transport-|other-,synthetic,seed-307
+seed-308,"Honestly, way too expensive for what we got, but the toilets were clean and there was shade to sit in!",en,3,price_value-|facilities+,synthetic,seed-308
+seed-309,"Overall, it felt more touristy than expected, but loved the local snacks they served Ok.",en,3,other-|food+,synthetic,seed-309
+seed-310,"Went with my family. the guide could not answer simple questions, but a lovely peaceful place Thanks.",en,3,guide-|other+,synthetic,seed-310
+seed-311,"Honestly, the meal was generous and tasty, but our guide seemed bored and rushed Thanks.",en,3,food+|guide-,synthetic,seed-311
+seed-312,"Overall, the homemade food was a treat, but no shade and nowhere to sit Thanks.",en,3,food+|facilities-,synthetic,seed-312
+seed-313,Update: communication was excellent and the guide explained each step so clearly!,en,5,communication+|guide+,synthetic,seed-313
+seed-314,"Honestly, very hard to find without a local and i could not understand the guide at all Ok.",en,1,access_transport-|guide-,synthetic,seed-314
+seed-315,They confirmed our booking right away and such a warm and knowledgeable host,en,5,communication+|guide+,synthetic,seed-315
+seed-316,"Went with my family. great tea and fresh fruit, but very few seats for older visitors Ok.",en,3,food+|facilities-,synthetic,seed-316
+seed-317,"Update: felt unsafe on the steep path, but good road all the way",en,3,facilities-|access_transport+,synthetic,seed-317
+seed-318,"Quick review: the snacks ran out before we got any, but communication was excellent!",en,3,food-|communication+,synthetic,seed-318
+seed-319,"Overpriced for a short visit, but the guide made the whole visit fun!",en,3,price_value-|guide+,synthetic,seed-319
+seed-320,Went with my family. the confirmation never arrived and not what we had hoped for!,en,1,communication-|other-,synthetic,seed-320
+seed-321,"Honestly, we only got one tiny sample to try and the guide was late and unprepared.",en,1,coffee_tasting-|guide-,synthetic,seed-321
+seed-322,Went with my family. best cup of coffee of the whole trip and great tea and fresh fruit Just my opinion.,en,5,coffee_tasting+|food+,synthetic,seed-322
+seed-323,"Quick review: the price was more than reasonable, but the guide was rude to some of the group",en,3,price_value+|guide-,synthetic,seed-323
+seed-324,"Update: i could not understand the guide at all, but loved the local snacks they served",en,3,guide-|food+,synthetic,seed-324
+seed-325,"Loved picking and roasting the beans ourselves, but no shade and nowhere to sit!",en,3,coffee_tasting+|facilities-,synthetic,seed-325
+seed-326,"Honestly, very few seats for older visitors, but the meal was generous and tasty",en,3,facilities-|food+,synthetic,seed-326
+seed-327,"Quick review: best cup of coffee of the whole trip, but nothing vegetarian was offered",en,3,coffee_tasting+|food-,synthetic,seed-327
+seed-328,We visited in July. simple to reach by taxi and beautiful views over the highlands.,en,5,access_transport+|other+,synthetic,seed-328
+seed-329,We visited in July. a disappointing visit overall and the coffee tasted burnt,en,1,other-|coffee_tasting-,synthetic,seed-329
+seed-330,"The directions were spot on and parking was easy, but not worth the money!",en,3,access_transport+|price_value-,synthetic,seed-330
+seed-331,"We visited in July. poor value for money, but short ride from town on a decent road!",en,3,price_value-|access_transport+,synthetic,seed-331
+seed-332,"We visited in July. way too expensive for what we got, but great tea and fresh fruit",en,3,price_value-|food+,synthetic,seed-332
+seed-333,Went with my family. far from town with no clear signs and the meal was disappointing Thanks.,en,1,access_transport-|food-,synthetic,seed-333
+seed-334,"Update: the tasting felt rushed and boring, but cheap for such a rich experience.",en,3,coffee_tasting-|price_value+,synthetic,seed-334
+seed-335,"Honestly, fresh maize and beans for lunch were lovely, but the price was higher than advertised Ok.",en,3,food+|price_value-,synthetic,seed-335
+seed-336,"Overall, loved picking and roasting the beans ourselves, but language barrier made booking difficult Just my opinion.",en,3,coffee_tasting+|communication-,synthetic,seed-336
+seed-337,"We visited in July. the guide could not answer simple questions, but the price was more than reasonable Ok.",en,3,guide-|price_value+,synthetic,seed-337
+seed-338,Ok.,en,3,,synthetic,seed-338
+seed-339,Ok..,en,3,,synthetic,seed-339
+seed-340,Ok...,en,3,,synthetic,seed-340
+seed-341,Nothing to say really.,en,3,,synthetic,seed-341
+seed-342,Nothing to say really..,en,3,,synthetic,seed-342
+seed-343,Nothing to say really...,en,3,,synthetic,seed-343
+seed-344,asdf qwerty,en,3,,synthetic,seed-344
+seed-345,asdf qwerty.,en,3,,synthetic,seed-345
+seed-346,asdf qwerty..,en,3,,synthetic,seed-346
+seed-347,"Selling phone cases, DM me for prices.",en,3,,synthetic,seed-347
+seed-348,"Selling phone cases, DM me for prices..",en,3,,synthetic,seed-348
+seed-349,"Selling phone cases, DM me for prices...",en,3,,synthetic,seed-349
