@@ -46,3 +46,19 @@ HF_HOME="$PWD/.ai-cache" HF_HUB_OFFLINE=1 .venv-ai/bin/python ai/translation/ser
 Keep this terminal running, then open the Expo web preview on localhost:8082 or localhost:8084. Open Insights → a review → write your response → choose the customer's language → Translate. The web client calls 127.0.0.1:8085. Inference stays on the laptop, uses cached weights only, and requires no cloud API key. The bridge binds only to loopback, permits only those preview origins, limits input sizes, and serializes inference requests. It does not log draft text. An unavailable service returns an error; it never silently substitutes a template for model output.
 
 The review reply page records laptop-model provenance and inference latency on approval. Replies are saved locally, not published. Mobile native builds continue to use explicit template translation because an in-app NLLB runtime is not installed. The localhost bridge cannot be reached from a separate phone and is not a phone-offline feature. Personalized reply suggestions still use authored examples: NLLB is a translator, not an instruction model.
+
+## Mobile app connection over Wi-Fi
+
+The native review composer now uses the saved translationEndpoint plus an in-memory pairing code to call NLLB. With no saved endpoint it still labels its template fallback. Configure Offline & AI → Connect mobile translation. Test and save a successful connection; then open a review and translate. Language/draft edits still invalidate the response. Pairing codes are not stored in SQLite, browser storage or Git; re-enter after restarting the app.
+
+Start a separate mobile bridge on the laptop's specific private Wi-Fi IP (shown in macOS network settings):
+
+```sh
+HF_HOME="$PWD/.ai-cache" HF_HUB_OFFLINE=1 .venv-ai/bin/python ai/translation/server.py --bind YOUR_PRIVATE_WIFI_IP --port 8086
+```
+
+Enter the printed address and pairing code into the phone. Both devices must be on a network that permits peer connections; guest Wi-Fi isolation or the Mac firewall can prevent connection. The service generates a new code each restart and rejects native requests without it. Browser requests from unrelated origins remain blocked. Do not bind to 0.0.0.0 or expose the service to the public internet.
+
+HTTP on trusted local Wi-Fi is a development/demo connection and is not encrypted. Installed iOS/Android builds may block HTTP by platform policy. For those builds use a certificate trusted by the phone, with `--cert certificate.pem --key private-key.pem`, and enter the HTTPS address. Do not disable global transport security to bypass this. Allow the iOS local-network prompt if shown. Expo Go networking must be verified on the actual phone; exports alone cannot prove it works.
+
+This is laptop-hosted translation, not an offline model installed in the phone. Native phone testing is pending. Offline data and local reply approval continue to work without the bridge.

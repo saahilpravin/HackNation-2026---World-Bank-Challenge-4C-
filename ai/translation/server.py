@@ -1,4 +1,8 @@
 """Loopback-only development bridge. Inference uses the downloaded local checkpoint."""
+import argparse
+import ipaddress
+import secrets
+import ssl
 import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -40,7 +44,7 @@ class Engine:
         return {"text": " ".join(translated), "source": "local-laptop-model", "modelVersion": f"{MODEL}@{self.provenance['revision']}", "latencyMs": round((time.perf_counter() - start) * 1000)}
 
 
-def handler(engine):
+def handler(engine, bind="127.0.0.1", port=8085, token=None):
     class Handler(BaseHTTPRequestHandler):
         def setup(self):
             super().setup()
@@ -50,7 +54,12 @@ def handler(engine):
             pass  # Do not log visitor drafts.
 
         def permitted(self):
-            return self.headers.get("Origin") in ORIGINS and self.headers.get("Host") in ("127.0.0.1:8085", "localhost:8085")
+            origin = self.headers.get("Origin")
+            host_ok = self.headers.get("Host") in (f"{bind}:{port}", f"localhost:{port}")
+            if token:
+                authorized = secrets.compare_digest(self.headers.get("Authorization", ""), f"Bearer {token}")
+                return host_ok and authorized and (origin is None or origin in ORIGINS)
+            return host_ok and origin in ORIGINS
 
         def respond(self, code, payload):
             body = json.dumps(payload).encode()
@@ -65,12 +74,12 @@ def handler(engine):
             self.wfile.write(body)
 
         def do_OPTIONS(self):
-            if not self.permitted():
+            if self.headers.get("Origin") not in ORIGINS:
                 return self.respond(403, {"error": "Preview origin not allowed."})
             self.send_response(204)
             self.send_header("Access-Control-Allow-Origin", self.headers["Origin"])
             self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-            self.send_header("Access-Control-Allow-Headers", "Content-Type")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
             self.send_header("Vary", "Origin")
             self.end_headers()
 
@@ -111,10 +120,35 @@ def handler(engine):
     return Handler
 
 
+def validate_bind(bind):
+    address = ipaddress.ip_address(bind)
+    if address.is_unspecified or not address.is_private or address.is_multicast:
+        raise ValueError("Bind to a specific private Wi-Fi address or loopback, not all interfaces.")
+    return address
+
+
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--bind", default="127.0.0.1")
+    parser.add_argument("--port", type=int, default=8085)
+    parser.add_argument("--cert", help="Optional TLS certificate for installed mobile builds")
+    parser.add_argument("--key", help="TLS private key (never commit)")
+    args = parser.parse_args()
+    address = validate_bind(args.bind)
+    if bool(args.cert) != bool(args.key):
+        parser.error("Provide both --cert and --key.")
+    token = secrets.token_urlsafe(24) if not address.is_loopback else None
     print("Loading cached NLLB on laptop CPU…", flush=True)
     engine = Engine()
-    server = ThreadingHTTPServer(("127.0.0.1", 8085), handler(engine))
+    server = ThreadingHTTPServer((args.bind, args.port), handler(engine, args.bind, args.port, token))
     server.daemon_threads = True
-    print("NLLB ready at http://127.0.0.1:8085 (local preview only)", flush=True)
+    if args.cert:
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        context.load_cert_chain(args.cert, args.key)
+        server.socket = context.wrap_socket(server.socket, server_side=True)
+    protocol = "https" if args.cert else "http"
+    print(f"NLLB ready at {protocol}://{args.bind}:{args.port}", flush=True)
+    if token:
+        print(f"Pairing code: {token}", flush=True)
+        print("Keep this code private. It expires when this service restarts.", flush=True)
     server.serve_forever()

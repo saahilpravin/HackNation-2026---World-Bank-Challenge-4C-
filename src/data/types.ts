@@ -59,6 +59,7 @@ export type Review = {
   demo: boolean;
 };
 export type Data = {
+  translationEndpoint?: string;
   profile: Profile | null;
   messages: Message[];
   bookings: Booking[];

@@ -15,3 +15,11 @@ test("model responses preserve measured provenance and reject invalid results", 
     await assert.rejects(translateOnLaptop("Hello", "English", "French"), /Cannot reach the laptop model/);
   } finally { globalThis.fetch = original; }
 });
+test("mobile endpoints reject public cleartext and embedded credentials", async () => {
+  const { normalizeEndpoint } = await import("../src/ai/laptop-translation.ts");
+  assert.equal(normalizeEndpoint("http://192.168.1.20:8086"), "http://192.168.1.20:8086");
+  assert.equal(normalizeEndpoint("https://translation.example"), "https://translation.example");
+  for (const endpoint of ["http://public.example", "http://192.168.attacker.example", "http://user:password@192.168.1.20", "http://192.168.1.20/translate"]) {
+    assert.throws(() => normalizeEndpoint(endpoint));
+  }
+});

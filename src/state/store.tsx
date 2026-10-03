@@ -11,11 +11,14 @@ import type { Data } from "../data/types";
 type Store = {
   data: Data | null;
   error: string | null;
+  translationToken: string;
+  setTranslationToken: (token: string) => void;
   update: (fn: (d: Data) => Data) => Promise<void>;
 };
 const Context = createContext<Store | null>(null);
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = useState<Data | null>(null);
+  const [translationToken, setTranslationToken] = useState("");
   const [error, setError] = useState<string | null>(null);
   const current = useRef<Data | null>(null);
   const queue = useRef(Promise.resolve());
@@ -50,7 +53,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     return task;
   };
   return (
-    <Context.Provider value={{ data, error, update }}>
+    <Context.Provider value={{ data, error, update, translationToken, setTranslationToken }}>
       {children}
     </Context.Provider>
   );

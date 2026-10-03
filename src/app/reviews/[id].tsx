@@ -14,7 +14,7 @@ export default function ReviewReply() {
 }
 function ReplyForm() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { data, update } = useStore();
+  const { data, update, translationToken } = useStore();
   const review = data?.reviews.find(r => r.id === id);
   const saved = data?.reviewReplies?.find(r => r.reviewId === id);
   const validLanguage = (l?: string): ReplyLanguage => replyLanguages.find(v => v === l) ?? "English";
@@ -44,7 +44,7 @@ function ReplyForm() {
     setTranslating(true);
     setStatus("Translating…");
     try {
-      const output = Platform.OS === "web" ? await translateOnLaptop(draft, from, to) : await templateReplies.translate(draft, from, to);
+      const output = (data?.translationEndpoint || Platform.OS === "web") ? await translateOnLaptop(draft, from, to, { endpoint: data?.translationEndpoint || "http://127.0.0.1:8085", token: translationToken }) : await templateReplies.translate(draft, from, to);
       if (version !== revision.current) return;
       setTranslated(output.text); setSource(output.source); setModelVersion(output.modelVersion); setLatencyMs(output.latencyMs); setKey(replyKey(draft, from, to)); setStatus(from === to ? "Same language: your response is shown unchanged." : output.source === "local-laptop-model" ? "NLLB translation ready. Check meaning and details before approval." : "Template language version ready. Check the wording before approval.");
     } catch (e) { if (version === revision.current) setStatus(e instanceof Error ? e.message : "Translation unavailable."); }
@@ -77,7 +77,7 @@ function ReplyForm() {
     <Card><Heading>Write your response</Heading>
       <Field label={`Your response (${from})`} value={draft} onChange={v => { if (!busy) { invalidate(); setDraft(v); } }} multiline />
       <Button label={translating ? "Translating…" : `Translate to ${to}`} onPress={() => void translate()} disabled={!draft.trim() || busy || translating} />
-      <Muted>{Platform.OS === "web" ? "NLLB translates your custom text on this laptop. No cloud inference. This preview connection is not an on-device phone model." : "On-device NLLB is not installed. Native translation currently supports unchanged templates only."}</Muted>
+      <Muted>{(data?.translationEndpoint || Platform.OS === "web") ? "NLLB translates through your connected laptop service. Keep the laptop running and your phone connected. This is not on-device phone inference." : "Connect your laptop in Offline & AI settings to translate custom text with NLLB. On-device NLLB is not installed."}</Muted>
     </Card>
     <Card><Heading>Customer-language response</Heading><Badge label={source === "manual" ? "Manually entered" : source === "local-laptop-model" ? "NLLB · Laptop model" : source === "on-device-model" ? "On-device model" : "Template / same-language text"} />
       <Field label={`Final response (${to})`} value={translated} onChange={v => { if (!busy && !translating) { setTranslated(v); setSource("manual"); setModelVersion(null); setLatencyMs(undefined); setKey(replyKey(draft, from, to)); setStatus(""); } }} multiline />

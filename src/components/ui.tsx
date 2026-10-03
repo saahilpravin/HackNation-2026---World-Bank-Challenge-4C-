@@ -236,12 +236,14 @@ export function Field({
   onChange,
   multiline = false,
   keyboardType = "default",
+  secure = false,
 }: {
   label: string;
   value: string;
   onChange: (s: string) => void;
   multiline?: boolean;
   keyboardType?: "default" | "numeric";
+  secure?: boolean;
 }) {
   return (
     <View style={{ gap: 7 }}>
@@ -252,6 +254,9 @@ export function Field({
         onChangeText={onChange}
         multiline={multiline}
         keyboardType={keyboardType}
+        secureTextEntry={secure}
+        autoCapitalize={secure ? "none" : "sentences"}
+        autoCorrect={!secure}
         style={[
           s.input,
           multiline && { minHeight: 110, textAlignVertical: "top" },
