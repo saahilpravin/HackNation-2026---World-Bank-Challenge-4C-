@@ -1,6 +1,7 @@
 import React from "react";
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -90,69 +91,28 @@ export function Page({
 }
 export function Logo({ large = false }: { large?: boolean }) {
   const size = large ? 76 : 34;
-  return (
-    <View
-      accessibilityLabel="Lauda logo"
-      style={{
-        width: size,
-        height: size,
-        borderRadius: size * 0.27,
-        backgroundColor: colors.accent,
-      }}
-    >
-      <View
-        style={{
-          position: "absolute",
-          left: size * 0.3,
-          top: size * 0.25,
-          width: size * 0.12,
-          height: size * 0.45,
-          backgroundColor: "white",
-          borderRadius: 2,
-        }}
-      />
-      <View
-        style={{
-          position: "absolute",
-          left: size * 0.3,
-          top: size * 0.58,
-          width: size * 0.4,
-          height: size * 0.12,
-          backgroundColor: "white",
-          borderRadius: 2,
-        }}
-      />
-      <View
-        style={{
-          position: "absolute",
-          left: size * 0.59,
-          top: size * 0.26,
-          width: size * 0.15,
-          height: size * 0.15,
-          borderRadius: size,
-          backgroundColor: "#B2F0DA",
-        }}
-      />
-    </View>
-  );
+  return <Image accessible accessibilityLabel="Lauda logo" source={require("../../assets/lauda-icon.png")} resizeMode="contain" style={{ width: size, height: size, borderRadius: size * .25 }} />;
 }
+
 export function Card({
   children,
   onPress,
+  tone,
 }: {
   children: React.ReactNode;
   onPress?: () => void;
+  tone?: "mint" | "peach" | "sky" | "rose" | "lavender";
 }) {
   return onPress ? (
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
-      style={({ pressed }) => [s.card, pressed && { opacity: 0.7 }]}
+      style={({ pressed }) => [s.card, tone && { backgroundColor: colors[tone] }, pressed && { opacity: 0.7 }]}
     >
       {children}
     </Pressable>
   ) : (
-    <View style={s.card}>{children}</View>
+    <View style={[s.card, tone && { backgroundColor: colors[tone] }]}>{children}</View>
   );
 }
 export function Heading({ children }: { children: React.ReactNode }) {

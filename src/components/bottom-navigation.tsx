@@ -3,7 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router, usePathname } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useStore } from "../state/store";
-import { colors } from "./theme";
+import { categoryColors, colors } from "./theme";
 const tabs = [
   { label: "Home", href: "/", icon: "home-outline", activeIcon: "home" },
   { label: "Reviews", href: "/reviews", icon: "chatbox-ellipses-outline", activeIcon: "chatbox-ellipses" },
@@ -35,7 +35,7 @@ export function BottomNavigation() {
         accessibilityLabel="Main navigation"
         style={styles.row}
       >
-        {tabs.map((tab) => {
+        {tabs.map((tab, index) => {
           const selected =
             tab.href === "/"
               ? pathname === "/"
@@ -53,7 +53,7 @@ export function BottomNavigation() {
               }}
               style={({ pressed }) => [
                 styles.tab,
-                selected && styles.active,
+                selected && {backgroundColor:categoryColors[index].bg},
                 pressed && { opacity: 0.7 },
               ]}
             >
@@ -61,7 +61,7 @@ export function BottomNavigation() {
                 <Ionicons
                   name={selected ? tab.activeIcon : tab.icon}
                   size={24}
-                  color={selected ? colors.accent : colors.muted}
+                  color={selected ? categoryColors[index].ink : colors.muted}
                 />
                 {tab.label === "Reviews" && unanswered > 0 && (
                   <View style={styles.count}>
@@ -74,7 +74,7 @@ export function BottomNavigation() {
               <Text
                 style={[
                   styles.label,
-                  selected && { color: colors.accent, fontWeight: "700" },
+                  selected && { color: categoryColors[index].ink, fontWeight: "700" },
                 ]}
               >
                 {tab.label}
