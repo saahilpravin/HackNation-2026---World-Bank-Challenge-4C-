@@ -6,7 +6,6 @@ import {
   Page,
   Notice,
   Loading,
-  Logo,
   Button,
   Muted,
   colors,
@@ -51,18 +50,15 @@ export default function Onboarding() {
     );
   return (
     <Page
-      title="Big possibilities. Small business."
-      subtitle="Meet your everyday business companion."
+      title="Welcome to Lauda"
+      subtitle="Messages, bookings, and feedback in one place."
       showProfile={false}
     >
-      <View style={[s.hero, { gap: 22, paddingVertical: 30 }]}>
-        <Logo large />
-        <Text style={[s.heroTitle, { fontSize: 32, lineHeight: 38 }]}>
-          Less admin. More connection.
-        </Text>
+      <View style={s.hero}>
+        <Text style={s.heroTitle}>A clearer day for your business.</Text>
         <Text style={s.heroText}>
-          Bring customer conversations, bookings, and feedback together. Keep
-          your workspace close, even when connectivity is limited.
+          Keep your records on your device. Set up your business or try the
+          sample workspace.
         </Text>
       </View>
       <View style={{ gap: 14, marginVertical: 4 }}>

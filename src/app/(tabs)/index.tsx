@@ -5,7 +5,6 @@ import {
   Page,
   Card,
   Heading,
-  Body,
   Muted,
   Badge,
   Button,
@@ -28,136 +27,152 @@ export default function Home() {
   );
   return (
     <Page
-      title={
-        profile.ownerName ? `Hello, ${profile.ownerName}.` : "Welcome back."
-      }
-      subtitle="A little clarity for your working day."
+      title={profile.ownerName ? `Hi, ${profile.ownerName}` : "Your workspace"}
+      subtitle={profile.name}
     >
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-        <View style={[s.avatar, { borderRadius: 12 }]}>
-          <Ionicons name="storefront-outline" size={22} color={colors.accent} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={[s.label, { fontSize: 15 }]}>{profile.name}</Text>
-          <Muted>{profile.experience}</Muted>
-        </View>
-        {demo && <Badge label="Demo" />}
-      </View>
-      <View style={s.hero}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-          <Ionicons name="phone-portrait-outline" size={16} color="#B2F0DA" />
-          <Text style={{ color: "#B2F0DA", fontWeight: "700", fontSize: 12 }}>
-            YOUR LOCAL WORKSPACE
-          </Text>
-        </View>
-        <Text style={s.heroTitle}>Your business. A little more in sync.</Text>
-        <Text style={s.heroText}>
-          Keep conversations moving and your next booking in view.
-        </Text>
-        <Button
-          label="Open messages →"
-          onPress={() => router.push("/messages")}
-        />
-      </View>
+      {demo && <Badge label="Demo business" />}
       <View style={s.row}>
-        <View style={{ flex: 1 }}>
-          <Card onPress={() => router.push("/messages")}>
-            <Ionicons
-              name="chatbubbles-outline"
-              size={22}
-              color={colors.accent}
-            />
-            <Text
-              style={{ fontSize: 32, fontWeight: "800", color: colors.ink }}
+        {[
+          {
+            label: "New messages",
+            value: unread,
+            icon: "chatbubble-ellipses-outline",
+            href: "/messages",
+          },
+          {
+            label: "Pending bookings",
+            value: pending,
+            icon: "calendar-outline",
+            href: "/bookings",
+          },
+        ].map((item) => (
+          <View key={item.label} style={{ flex: 1 }}>
+            <Card
+              onPress={() =>
+                router.navigate(item.href as "/messages" | "/bookings")
+              }
             >
-              {unread}
-            </Text>
-            <Muted>Unread messages</Muted>
-          </Card>
-        </View>
-        <View style={{ flex: 1 }}>
-          <Card onPress={() => router.push("/bookings")}>
-            <Ionicons name="calendar-outline" size={22} color={colors.accent} />
-            <Text
-              style={{ fontSize: 32, fontWeight: "800", color: colors.ink }}
-            >
-              {pending}
-            </Text>
-            <Muted>Pending bookings</Muted>
-          </Card>
-        </View>
+              <Ionicons
+                name={item.icon as "calendar-outline"}
+                size={22}
+                color={colors.accent}
+              />
+              <Text
+                style={{ fontSize: 28, fontWeight: "600", color: colors.ink }}
+              >
+                {item.value}
+              </Text>
+              <Muted>{item.label}</Muted>
+            </Card>
+          </View>
+        ))}
       </View>
-      <Heading>On the schedule</Heading>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <Heading>Today’s bookings</Heading>
+        <Text
+          accessibilityRole="link"
+          onPress={() => router.navigate("/bookings")}
+          style={{ color: colors.accent, fontSize: 14, paddingVertical: 12 }}
+        >
+          View all →
+        </Text>
+      </View>
       {bookings.length ? (
         bookings.map((b) => (
           <Card key={b.id} onPress={() => router.push(`/bookings/${b.id}`)}>
             <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
+              style={{ flexDirection: "row", alignItems: "center", gap: 14 }}
             >
-              <Badge label={b.time} />
-              <Muted>{b.status}</Muted>
+              <View
+                style={{
+                  paddingVertical: 14,
+                  paddingHorizontal: 12,
+                  backgroundColor: "#F0F3FA",
+                  borderRadius: 12,
+                }}
+              >
+                <Text
+                  style={{ color: colors.ink, fontSize: 16, fontWeight: "600" }}
+                >
+                  {b.time}
+                </Text>
+              </View>
+              <View style={{ flex: 1, gap: 3 }}>
+                <Heading>{b.guest}</Heading>
+                <Muted>
+                  {b.guests} participants · {b.status}
+                </Muted>
+              </View>
+              <Ionicons name="chevron-forward" color={colors.muted} size={20} />
             </View>
-            <Heading>{b.guest}</Heading>
-            <Body>
-              {b.guests} participants · {profile.experience}
-            </Body>
-            {b.demo && <Muted>Sample booking · demo business</Muted>}
+            {b.demo && <Muted>Sample booking</Muted>}
           </Card>
         ))
       ) : (
         <Card>
-          <Ionicons
-            name="calendar-clear-outline"
-            size={28}
-            color={colors.accent}
-          />
-          <Heading>A little room in your day</Heading>
-          <Body>No bookings scheduled for today.</Body>
+          <Heading>No bookings today</Heading>
+          <Muted>Check your upcoming bookings or pending requests.</Muted>
           <Button
-            label="View all bookings"
+            label="Open bookings"
             secondary
-            onPress={() => router.push("/bookings")}
+            onPress={() => router.navigate("/bookings")}
           />
         </Card>
       )}
-      <Heading>From your feedback</Heading>
-      <Card onPress={() => router.push("/insights")}>
-        <Badge
-          label={data.reviews.length ? "Reviews available" : "Getting started"}
-        />
-        <Heading>
-          {data.reviews.length
-            ? "See what customers are saying"
-            : "Make feedback part of your routine"}
-        </Heading>
-        <Body>
-          {data.reviews.length
-            ? `${data.reviews.length} ${demo ? "sample " : ""}reviews in your workspace. Open Insights to see the evidence.`
-            : "Your customer reviews will appear here when you add or import them. Review collection is not connected yet."}
-        </Body>
-        <Muted>Open Insights →</Muted>
-      </Card>
-      <Card onPress={() => router.push("/offline")}>
-        <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
-          <Ionicons
-            name="shield-checkmark-outline"
-            size={26}
-            color={colors.accent}
-          />
-          <View style={{ flex: 1 }}>
-            <Text style={s.label}>Saved on this device</Text>
-            <Muted>Offline storage & AI status →</Muted>
+      <Heading>Quick access</Heading>
+      {[
+        {
+          icon: "chatbubbles-outline",
+          title: "Customer messages",
+          detail: "Read, translate, and review replies",
+          href: "/messages",
+        },
+        {
+          icon: "bar-chart-outline",
+          title: "Customer feedback",
+          detail: `${data.reviews.length} ${demo ? "sample " : ""}reviews in your workspace`,
+          href: "/insights",
+        },
+        {
+          icon: "shield-checkmark-outline",
+          title: "Offline & AI",
+          detail: "Check local storage and model readiness",
+          href: "/offline",
+        },
+      ].map((item) => (
+        <Card
+          key={item.title}
+          onPress={() =>
+            router.navigate(item.href as "/messages" | "/insights" | "/offline")
+          }
+        >
+          <View style={{ flexDirection: "row", gap: 14, alignItems: "center" }}>
+            <Ionicons
+              name={item.icon as "chatbubbles-outline"}
+              size={24}
+              color={colors.accent}
+            />
+            <View style={{ flex: 1, gap: 3 }}>
+              <Text
+                style={{ fontSize: 16, fontWeight: "600", color: colors.ink }}
+              >
+                {item.title}
+              </Text>
+              <Muted>{item.detail}</Muted>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.muted} />
           </View>
-        </View>
-      </Card>
+        </Card>
+      ))}
       {demo && (
         <Muted>
-          Exploring Lauda with Noor’s Coffee Farm. All sample messages,
-          bookings, and reviews are demo data.
+          Noor’s Coffee Farm is a sample business. AI examples are scripted.
         </Muted>
       )}
     </Page>

@@ -9,6 +9,7 @@ import {
   Badge,
   Field,
   Button,
+  PreviewText,
 } from "../../components/ui";
 import { useStore } from "../../state/store";
 export default function Messages() {
@@ -39,7 +40,7 @@ export default function Messages() {
               label={`Demo intent: ${{ m1: "Booking request", m2: "Price inquiry", m3: "Directions", m4: "Needs review" }[m.id as "m1" | "m2" | "m3" | "m4"] ?? "Needs review"}`}
             />
           )}
-          <Body>{m.text}</Body>
+          <PreviewText>{m.text}</PreviewText>
           <Muted>
             {m.demo ? "Sample message · demo AI available" : "Local message"} ·
             Open conversation →

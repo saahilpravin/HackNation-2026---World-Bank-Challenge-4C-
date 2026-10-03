@@ -16,3 +16,6 @@ On this Mac, Metro's normal watch mode exceeded the operating-system watcher lim
 
 ## Lauda redesign validation
 TypeScript and lint pass. Nine tests pass, including clean first-launch data, generic business setup, and legacy demo-profile handling. Web, iOS and Android bundle exports pass. Phone-width browser QA verified the Lauda welcome, demo dashboard, and an empty City Studio business using a custom owner name and EUR pricing. New app icon and manifest name are Lauda. Existing browser data is copied from the legacy storage key without removing the original. The native SQLite filename remains unchanged; installed-app upgrades must also retain their existing bundle/package identifier to keep the OS data container. No signed native build or physical-device test was performed.
+
+## Readability and navigation update
+Reduced dashboard text and removed the promotional hero. Added a persistent four-tab navigation bar with 64-point minimum targets, larger labels, unread count and selected-state semantics. Navigation remains available on detail/settings pages. Browser QA at phone width verified all four destinations, including message-detail to Bookings, selected-state attributes and the fixed navigation while scrolling. TypeScript, ESLint and web/iOS/Android bundle exports passed. Native device QA remains outstanding.

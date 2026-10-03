@@ -11,14 +11,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-export const colors = {
-  bg: "#F5F6FA",
-  ink: "#17213D",
-  muted: "#69738A",
-  accent: "#4C5EDB",
-  line: "#E4E7F0",
-  amber: "#8A5421",
-};
+import { colors } from "./theme";
+import { BottomNavigation } from "./bottom-navigation";
+export { colors } from "./theme";
 export function Page({
   title,
   subtitle,
@@ -34,28 +29,29 @@ export function Page({
 }) {
   return (
     <SafeAreaView style={s.safe} edges={["top", "left", "right"]}>
+      <View style={s.brandBar}>
+        <View style={s.brandGroup}>
+          <Logo />
+          <Text style={s.wordmark}>
+            Lauda<Text style={{ color: colors.accent }}>.</Text>
+          </Text>
+        </View>
+        {showProfile && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Business profile"
+            style={s.avatar}
+            onPress={() => router.push("/profile")}
+          >
+            <Ionicons name="options-outline" size={21} color={colors.ink} />
+          </Pressable>
+        )}
+      </View>
       <ScrollView
+        style={{ flex: 1 }}
         contentContainerStyle={s.page}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={s.brandBar}>
-          <View style={s.brandGroup}>
-            <Logo />
-            <Text style={s.wordmark}>
-              Lauda<Text style={{ color: colors.accent }}>.</Text>
-            </Text>
-          </View>
-          {showProfile && (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Business profile"
-              style={s.avatar}
-              onPress={() => router.push("/profile")}
-            >
-              <Ionicons name="options-outline" size={21} color={colors.ink} />
-            </Pressable>
-          )}
-        </View>
         {back && (
           <Pressable
             accessibilityRole="button"
@@ -85,10 +81,8 @@ export function Page({
           </View>
         </View>
         {children}
-        <Text style={[s.muted, { textAlign: "center", marginTop: 12 }]}>
-          Lauda · Your business, connected.
-        </Text>
       </ScrollView>
+      {showProfile && <BottomNavigation />}
     </SafeAreaView>
   );
 }
@@ -169,6 +163,13 @@ export function Heading({ children }: { children: React.ReactNode }) {
 export function Body({ children }: { children: React.ReactNode }) {
   return <Text style={s.body}>{children}</Text>;
 }
+export function PreviewText({ children }: { children: React.ReactNode }) {
+  return (
+    <Text numberOfLines={2} style={s.body}>
+      {children}
+    </Text>
+  );
+}
 export function Muted({ children }: { children: React.ReactNode }) {
   return <Text style={s.muted}>{children}</Text>;
 }
@@ -218,7 +219,8 @@ export function Button({
     >
       <Text
         style={{
-          fontWeight: "700",
+          fontWeight: "600",
+          fontSize: 16,
           color: secondary ? colors.accent : "white",
           textAlign: "center",
         }}
@@ -281,23 +283,28 @@ export const s = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingBottom: 12,
+    paddingHorizontal: 20,
+    paddingTop: 14,
+    paddingBottom: 14,
+    backgroundColor: "white",
+    borderBottomWidth: 1,
+    borderBottomColor: colors.line,
   },
   brandGroup: { flexDirection: "row", alignItems: "center", gap: 10 },
   wordmark: {
-    fontSize: 25,
-    fontWeight: "800",
+    fontSize: 23,
+    fontWeight: "700",
     letterSpacing: -1,
     color: colors.ink,
   },
   safe: { flex: 1, backgroundColor: colors.bg },
   page: {
-    padding: 22,
-    gap: 16,
+    padding: 20,
+    gap: 18,
     maxWidth: 700,
     width: "100%",
     alignSelf: "center",
-    paddingBottom: 36,
+    paddingBottom: 28,
   },
   header: {
     flexDirection: "row",
@@ -313,14 +320,14 @@ export const s = StyleSheet.create({
     marginBottom: 10,
   },
   title: {
-    fontSize: 30,
-    fontWeight: "800",
+    fontSize: 28,
+    fontWeight: "700",
     color: colors.ink,
-    letterSpacing: -0.8,
+    letterSpacing: -0.5,
   },
   avatar: {
-    width: 42,
-    height: 42,
+    width: 46,
+    height: 46,
     borderRadius: 16,
     backgroundColor: "#EAEFFD",
     alignItems: "center",
@@ -334,9 +341,9 @@ export const s = StyleSheet.create({
     borderColor: colors.line,
     gap: 10,
   },
-  heading: { fontSize: 20, fontWeight: "700", color: colors.ink },
+  heading: { fontSize: 18, fontWeight: "600", color: colors.ink },
   body: { fontSize: 16, lineHeight: 24, color: colors.ink },
-  muted: { fontSize: 13, lineHeight: 20, color: colors.muted },
+  muted: { fontSize: 14, lineHeight: 22, color: colors.muted },
   badge: {
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -348,10 +355,10 @@ export const s = StyleSheet.create({
     backgroundColor: colors.accent,
     borderRadius: 14,
     padding: 16,
-    minHeight: 48,
+    minHeight: 52,
   },
   secondary: { backgroundColor: "#EDF0FF" },
-  label: { fontSize: 13, fontWeight: "700", color: colors.ink },
+  label: { fontSize: 14, fontWeight: "700", color: colors.ink },
   input: {
     backgroundColor: "white",
     borderWidth: 1,
@@ -361,9 +368,14 @@ export const s = StyleSheet.create({
     fontSize: 16,
     color: colors.ink,
   },
-  notice: { padding: 16, backgroundColor: "#FFF1D8", borderRadius: 14 },
+  notice: { padding: 16, backgroundColor: "#F0F2F7", borderRadius: 14 },
   row: { flexDirection: "row", gap: 12 },
-  hero: { padding: 24, borderRadius: 22, backgroundColor: "#263563", gap: 12 },
-  heroTitle: { color: "white", fontSize: 25, fontWeight: "700" },
-  heroText: { color: "#C8D0F6", fontSize: 15, lineHeight: 22 },
+  hero: { padding: 22, borderRadius: 18, backgroundColor: "#EDF1FF", gap: 12 },
+  heroTitle: {
+    color: colors.ink,
+    fontSize: 24,
+    fontWeight: "600",
+    lineHeight: 32,
+  },
+  heroText: { color: colors.muted, fontSize: 16, lineHeight: 25 },
 });
