@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { router } from "expo-router";
 import { Page, Card, Heading, Body, Badge, Muted, Notice, Button, Field } from "../../components/ui";
 import { useStore } from "../../state/store";
+import { replyLanguages } from "../../ai/review-replies";
 import { analyzeFeedback } from "../../ai/feedback";
 
 export default function Insights() {
@@ -10,6 +11,7 @@ export default function Insights() {
   const [adding, setAdding] = useState(false);
   const [text, setText] = useState("");
   const [rating, setRating] = useState("5");
+  const [language, setLanguage] = useState<string>("English");
   const [guest, setGuest] = useState("");
   const [status, setStatus] = useState("");
   const [saving, setSaving] = useState(false);
@@ -22,7 +24,7 @@ export default function Insights() {
     }
     setSaving(true);
     try {
-      await update(d => ({ ...d, reviews: [...d.reviews, { id: `review-${Date.now()}-${Math.random().toString(36).slice(2)}`, guest: guest.trim() || "Visitor", text: text.trim(), rating: score, theme: "", demo: false }] }));
+      await update(d => ({ ...d, reviews: [...d.reviews, { id: `review-${Date.now()}-${Math.random().toString(36).slice(2)}`, guest: guest.trim() || "Visitor", text: text.trim(), rating: score, language, theme: "", demo: false }] }));
       setText(""); setGuest(""); setAdding(false); setDemo(false); setStatus("Review saved on this device. Insights updated.");
     } catch { setStatus("Could not save the review. Your entry is still here; please try again."); }
     finally { setSaving(false); }
@@ -42,11 +44,22 @@ export default function Insights() {
         <Muted>Paste a review you have permission to use. Saved locally; no automatic review import.</Muted>
         <Field label="Visitor name (optional)" value={guest} onChange={setGuest} />
         <Field label="Rating (1–5)" value={rating} onChange={setRating} keyboardType="numeric" />
+        <Heading>Customer’s review language</Heading>
+        {replyLanguages.map(l => <Button key={l} label={`${language === l ? "✓ " : ""}${l}`} onPress={() => setLanguage(l)} secondary={language !== l} />)}
         <Field label="Review text" value={text} onChange={setText} multiline />
         <Button label={saving ? "Saving…" : "Save review"} onPress={() => void saveReview()} disabled={saving} />
       </Card>}
       {!!status && <Notice text={status} />}
       {demo && <Notice text="Sample feedback only. These findings use seeded reviews and messages and do not measure model performance." />}
+      <Card>
+        <Heading>Respond to a review</Heading>
+        <Muted>Write your own reply or start with an example, then review the customer-language version.</Muted>
+        {(data?.reviews ?? []).filter(r => r.demo === demo).map(r => <Card key={r.id} onPress={() => router.push(`/reviews/${r.id}`)}>
+          <Badge label={`${r.rating} / 5${r.demo ? " · Sample" : ""}`} />
+          <Heading>{r.guest}</Heading><Body>{r.text}</Body><Muted>Write a reply →</Muted>
+        </Card>)}
+        {!(data?.reviews ?? []).some(r => r.demo === demo) && <Muted>Add a review to get started.</Muted>}
+      </Card>
       <Muted>{report.analyzed} {demo ? "sample " : ""}reviews and messages scanned · {report.skipped} without a recognized topic. Counts represent records, not unique visitors or market demand.</Muted>
       {([
         { key: "love", title: "What visitors love", empty: "No clear praise recognized yet." },

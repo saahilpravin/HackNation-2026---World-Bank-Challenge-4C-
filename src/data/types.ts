@@ -38,11 +38,21 @@ export type Reply = {
   status: "queued";
   demo: boolean;
 };
+export type ReviewReply = {
+  reviewId: string;
+  draft: string;
+  writingLanguage: string;
+  customerLanguage: string;
+  translatedText: string;
+  source: "local-template" | "manual" | "on-device-model";
+  approvedAt: string;
+};
 export type Review = {
   id: string;
   guest: string;
   rating: number;
   text: string;
+  language?: string;
   theme: string;
   demo: boolean;
 };
@@ -52,4 +62,5 @@ export type Data = {
   bookings: Booking[];
   replies: Reply[];
   reviews: Review[];
+  reviewReplies?: ReviewReply[];
 };

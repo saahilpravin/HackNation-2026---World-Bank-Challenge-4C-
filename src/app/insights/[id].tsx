@@ -14,6 +14,7 @@ export default function Evidence() {
       {finding?.evidence.map(e => <Card key={`${e.kind}:${e.id}`}>
         <Badge label={`${e.demo ? "Sample " : ""}${e.kind}`} />
         <Heading>{e.guest}</Heading><Body>“{e.text}”</Body>
+        {e.kind === "review" && <Button label="Respond to review" onPress={() => router.push(`/reviews/${e.id}`)} secondary />}
         {e.kind === "message" && <Button label="Open message" onPress={() => router.push(`/messages/${e.id}`)} secondary />}
       </Card>)}
       {!finding && <Body>No supporting feedback found. Return to Insights to see current findings.</Body>}

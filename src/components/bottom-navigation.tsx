@@ -43,7 +43,7 @@ export function BottomNavigation() {
           const selected =
             tab.href === "/"
               ? pathname === "/"
-              : pathname === tab.href || pathname.startsWith(`${tab.href}/`);
+              : pathname === tab.href || pathname.startsWith(`${tab.href}/`) || (tab.href === "/insights" && pathname.startsWith("/reviews/"));
           return (
             <Pressable
               key={tab.href}
