@@ -6,6 +6,7 @@ import React, {
   useState,
 } from "react";
 import { load, save } from "../data/storage";
+import { upgradeDemoReviews } from "../data/demo-upgrade";
 import { emptyData } from "../data/profile";
 import type { Data } from "../data/types";
 type Store = {
@@ -27,8 +28,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     (async () => {
       try {
         const saved = await load();
-        const initial = saved ?? emptyData();
-        if (!saved) await save(initial);
+        const initial = upgradeDemoReviews(saved ?? emptyData());
+        if (!saved || initial !== saved) await save(initial);
         if (alive) {
           current.current = initial;
           setData(initial);

@@ -55,11 +55,18 @@ export type Review = {
   rating: number;
   text: string;
   language?: string;
+  date?: string;
+  origin?: string;
+  canonicalEnglish?: string;
+  fixtureTranslations?: Record<string, string>;
+  translationProvenance?: string;
+  exampleResponse?: { text: string; language: string; respondedAt: string; demo: boolean };
   theme: string;
   demo: boolean;
 };
 export type Data = {
   translationEndpoint?: string;
+  demoReviewVersion?: number;
   profile: Profile | null;
   messages: Message[];
   bookings: Booking[];

@@ -29,6 +29,7 @@ export async function translateOnLaptop(text: string, from: ReplyLanguage, to: R
       body: JSON.stringify({ text, from, to }), signal: controller.signal,
     });
     const result = await response.json();
+    if (response.status === 403) throw new Error("Connection not authorized. Re-enter the current pairing code in Offline & AI, then try again.");
     if (!response.ok) throw new Error(typeof result.error === "string" ? result.error : "Translation failed.");
     if (typeof result.text !== "string" || !result.text.trim() || result.source !== "local-laptop-model" || typeof result.modelVersion !== "string" || !Number.isFinite(result.latencyMs)) {
       throw new Error("The translation service returned an invalid result.");

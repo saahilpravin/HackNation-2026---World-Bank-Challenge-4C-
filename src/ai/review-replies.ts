@@ -1,5 +1,5 @@
 import type { Review } from "../data/types.ts";
-export const replyLanguages = ["English", "French", "Kiswahili"] as const;
+export const replyLanguages = ["English", "French", "Kiswahili", "German", "Spanish", "Italian", "Portuguese", "Arabic", "Hindi", "Chinese"] as const;
 export type ReplyLanguage = typeof replyLanguages[number];
 export type ReplyOutput = { text: string; source: "local-template" | "on-device-model" | "local-laptop-model"; modelVersion: string | null; latencyMs?: number };
 export interface ReviewReplyProvider {
@@ -24,16 +24,19 @@ const templates = {
     Kiswahili: "Asante kwa maoni yako ya dhati. Tunasikitika kwamba uzoefu wako haukukidhi matarajio yako. Tungependa kupata maelezo zaidi ili kuelewa matatizo uliyokumbana nayo.",
   },
 };
+const generic: Record<string, string> = {
+ German: "Vielen Dank für Ihr Feedback. Wir freuen uns über Ihre Anregungen.", Spanish: "Gracias por sus comentarios. Apreciamos sus sugerencias.", Italian: "Grazie per il suo feedback. Apprezziamo i suoi suggerimenti.", Portuguese: "Obrigado pelo seu feedback. Agradecemos as suas sugestões.", Arabic: "شكراً لملاحظاتكم. نحن نقدر اقتراحاتكم.", Hindi: "आपकी प्रतिक्रिया के लिए धन्यवाद। हम आपके सुझावों की सराहना करते हैं।", Chinese: "感谢您的反馈。我们非常重视您的建议。"
+};
 export const templateReplies: ReviewReplyProvider = {
   async suggest(review, language) {
     const tone = review.rating === 5 ? "positive" : review.rating >= 3 ? "neutral" : "negative";
-    return { text: templates[tone][language], source: "local-template", modelVersion: null };
+    return { text: templates[tone][language as keyof typeof templates.positive] ?? generic[language], source: "local-template", modelVersion: null };
   },
   async translate(text, from, to) {
     if (!text.trim()) throw new Error("Write a response first.");
     if (from === to) return { text, source: "local-template", modelVersion: null };
     for (const template of Object.values(templates)) {
-      if (text === template[from]) return { text: template[to], source: "local-template", modelVersion: null };
+      if (text === template[from as keyof typeof templates.positive] && template[to as keyof typeof templates.positive]) return { text: template[to as keyof typeof templates.positive], source: "local-template", modelVersion: null };
     }
     throw new Error("Custom-text translation needs a connected language model. Your draft is saved in the form. You can use the unchanged example for a template translation, or enter a translation yourself.");
   },

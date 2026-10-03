@@ -6,14 +6,14 @@ from pathlib import Path
 import time
 
 MODEL = "facebook/nllb-200-distilled-600M"
-LANGUAGES = {"English": "eng_Latn", "French": "fra_Latn", "Kiswahili": "swh_Latn"}
+LANGUAGES = {"English": "eng_Latn", "French": "fra_Latn", "Kiswahili": "swh_Latn", "German": "deu_Latn", "Spanish": "spa_Latn", "Italian": "ita_Latn", "Portuguese": "por_Latn", "Arabic": "arb_Arab", "Hindi": "hin_Deva", "Chinese": "zho_Hans"}
 
 
 def validate(row):
     if not isinstance(row.get("text"), str) or not row["text"].strip():
         raise ValueError("Each case needs nonempty text.")
     if row.get("from") not in LANGUAGES or row.get("to") not in LANGUAGES:
-        raise ValueError("Use English, French or Kiswahili for from/to.")
+        raise ValueError("Choose a supported language for from/to.")
     return row
 
 

@@ -1,3 +1,4 @@
+import { reviewDemo } from "./review-demo.ts";
 import type { Data, Profile } from "./types";
 export const demoProfile: Profile = {
   ownerName: "Noor",
@@ -90,39 +91,7 @@ export function demoData(): Data {
         demo: true,
       },
     ],
-    reviews: [
-      {
-        id: "r1",
-        guest: "Maya",
-        rating: 5,
-        text: "Noor made the coffee tasting so special. We loved learning from a local grower.",
-        theme: "tasting",
-        demo: true,
-      },
-      {
-        id: "r2",
-        guest: "Jean",
-        rating: 4,
-        text: "A wonderful tour, but the turn from the main road was hard to find.",
-        theme: "directions",
-        demo: true,
-      },
-      {
-        id: "r3",
-        guest: "Peter",
-        rating: 4,
-        text: "Great coffee! A sign by the bus stop would make arrival easier.",
-        theme: "directions",
-        demo: true,
-      },
-      {
-        id: "r4",
-        guest: "Zawadi",
-        rating: 5,
-        text: "The tasting and stories about growing coffee were the highlight of our visit.",
-        theme: "tasting",
-        demo: true,
-      },
-    ],
+    reviews: reviewDemo.map(r => ({ ...r })),
+    demoReviewVersion: 2,
   };
 }

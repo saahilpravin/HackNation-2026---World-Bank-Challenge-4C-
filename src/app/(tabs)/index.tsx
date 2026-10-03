@@ -1,3 +1,4 @@
+import { Hero } from "../../components/studio";
 import { Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -30,7 +31,9 @@ export default function Home() {
       title={profile.ownerName ? `Hi, ${profile.ownerName}` : "Your workspace"}
       subtitle={profile.name}
     >
-      {demo && <Badge label="Demo business" />}
+      <Hero eyebrow="LAUDA · YOUR BUSINESS, IN FOCUS" title="Good experiences.
+Even better next steps."><Text style={{ color: "#E8DFF9", fontSize: 15, lineHeight: 23 }}>Keep conversations moving. Turn visitor feedback into your next great idea.</Text><Button label="Explore your feedback →" onPress={() => router.navigate("/insights")} /></Hero>
+      {demo && <Badge label="Noor’s Coffee Farm · Demo workspace" />}
       <View style={s.row}>
         {[
           {

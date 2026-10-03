@@ -1,4 +1,5 @@
-import { Platform } from "react-native";
+import { Avatar, LanguagePicker, Stars } from "../../components/studio";
+import { Platform, View } from "react-native";
 import { translateOnLaptop } from "../../ai/laptop-translation";
 import { useRef, useState } from "react";
 import { useLocalSearchParams } from "expo-router";
@@ -18,6 +19,22 @@ function ReplyForm() {
   const review = data?.reviews.find(r => r.id === id);
   const saved = data?.reviewReplies?.find(r => r.reviewId === id);
   const validLanguage = (l?: string): ReplyLanguage => replyLanguages.find(v => v === l) ?? "English";
+  const [readingLanguage, setReadingLanguage] = useState<ReplyLanguage>(validLanguage(data?.profile?.language));
+  const [showOriginal, setShowOriginal] = useState(false);
+  const [readingTranslation, setReadingTranslation] = useState("");
+  const [readingStatus, setReadingStatus] = useState("");
+  const [readingBusy, setReadingBusy] = useState(false);
+  const readingRevision = useRef(0);
+  const read = async () => {
+    if (!review || readingBusy) return;
+    const version = readingRevision.current;
+    setReadingBusy(true); setReadingStatus("Translating review…");
+    try {
+      const output = await translateOnLaptop(review.text, validLanguage(review.language), readingLanguage, { endpoint: data?.translationEndpoint || "http://127.0.0.1:8085", token: translationToken });
+      if (version === readingRevision.current) { setReadingTranslation(output.text); setReadingStatus("NLLB translation · check the original when details matter."); }
+    } catch(e) { if (version === readingRevision.current) setReadingStatus(e instanceof Error ? e.message : "Translation unavailable."); }
+    finally { setReadingBusy(false); }
+  };
   const [from, setFrom] = useState<ReplyLanguage>(validLanguage(saved?.writingLanguage ?? data?.profile?.language));
   const [to, setTo] = useState<ReplyLanguage>(validLanguage(saved?.customerLanguage ?? review?.language));
   const [draft, setDraft] = useState(saved?.draft ?? "");
@@ -61,12 +78,22 @@ function ReplyForm() {
   };
   if (!review) return <Page title="Review reply" back><Body>Review not found.</Body></Page>;
   return <Page title="Reply to a review" subtitle="Your words, checked before sharing." back>
-    <Card><Badge label={`${review.rating} / 5${review.demo ? " · Sample review" : ""}`} /><Heading>{review.guest}</Heading><Body>{review.text}</Body></Card>
     <Card>
-      <Heading>Your writing language</Heading>
-      {replyLanguages.map(l => <Button key={l} label={`${from === l ? "✓ " : ""}${l}`} onPress={() => { invalidate(); setFrom(l); setExample(""); }} secondary={from !== l} disabled={busy} />)}
-      <Heading>Customer’s language</Heading><Muted>{review.language ? "Confirm the review’s language before replying." : "Language was not recorded. Choose it yourself; it has not been detected by AI."}</Muted>
-      {replyLanguages.map(l => <Button key={l} label={`${to === l ? "✓ " : ""}${l}`} onPress={() => { invalidate(); setTo(l); }} secondary={to !== l} disabled={busy} />)}
+      <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}><Avatar name={review.guest} /><View style={{ flex: 1, gap: 5 }}><Heading>{review.guest}</Heading><Stars rating={review.rating} /><Muted>{review.language ?? "Language unknown"} · {review.date ?? "Imported review"}</Muted></View></View>
+      <Badge label={review.demo ? "Synthetic sample review" : "Imported feedback"} />
+      <LanguagePicker label="Read this review in" languages={replyLanguages} value={readingLanguage} onChange={l => { readingRevision.current++; setReadingLanguage(validLanguage(l)); setReadingTranslation(""); setReadingStatus(""); }} />
+      <Body>{readingLanguage === review.language ? review.text : review.fixtureTranslations?.[readingLanguage] ?? (readingTranslation || review.text)}</Body>
+      {readingLanguage !== review.language && !review.fixtureTranslations?.[readingLanguage] && <Button label={readingBusy ? "Translating…" : `Translate review to ${readingLanguage}`} disabled={readingBusy} onPress={() => void read()} secondary />}
+      {readingLanguage !== review.language && !!review.fixtureTranslations?.[readingLanguage] && <Muted>{readingLanguage === "English" ? "Authored English version of this sample scenario" : "Cached sample translation · NLLB · not human reviewed"}</Muted>}
+      {readingLanguage !== review.language && <Button secondary label={showOriginal ? "Hide original review" : "Show original review"} onPress={() => setShowOriginal(!showOriginal)} />}
+      {showOriginal && readingLanguage !== review.language && <Body>{review.text}</Body>}
+      {!!readingStatus && <Notice text={readingStatus} />}
+    </Card>
+    {(saved || review.exampleResponse) && <Card><Badge label={saved ? "Approved on this device" : "Example · already answered"} /><Heading>Previous response</Heading><Body>{saved?.translatedText ?? review.exampleResponse?.text}</Body><Muted>{saved?.approvedAt.slice(0,10) ?? review.exampleResponse?.respondedAt} · {saved?.customerLanguage ?? review.exampleResponse?.language}</Muted></Card>}
+    <Card>
+      <Heading>Make it your own</Heading>
+      <LanguagePicker label="Your writing language" languages={replyLanguages} value={from} onChange={l => { invalidate(); setFrom(validLanguage(l)); setExample(""); }} disabled={busy} />
+      <LanguagePicker label="Customer’s language" languages={replyLanguages} value={to} onChange={l => { invalidate(); setTo(validLanguage(l)); }} disabled={busy} />
     </Card>
     <Card>
       <Heading>Suggested response</Heading><Badge label="Offline example · Authored template" />

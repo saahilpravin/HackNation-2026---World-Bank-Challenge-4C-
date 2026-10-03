@@ -1,3 +1,5 @@
+import { View } from "react-native";
+import { Avatar, Chips, Hero } from "../../components/studio";
 import { useState } from "react";
 import { router } from "expo-router";
 import {
@@ -8,7 +10,6 @@ import {
   Muted,
   Badge,
   Field,
-  Button,
   PreviewText,
 } from "../../components/ui";
 import { useStore } from "../../state/store";
@@ -24,16 +25,14 @@ export default function Messages() {
     ) ?? [];
   return (
     <Page title="Messages" subtitle="Customer conversations, all in one place.">
+      <Hero eyebrow="THE CONVERSATION DESK" title="A warm welcome,
+in every language." />
       <Field label="Search customers or messages" value={q} onChange={setQ} />
-      <Button
-        label={unread ? "Showing unread · show all" : "Show unread only"}
-        secondary
-        onPress={() => setUnread(!unread)}
-      />
+      <Chips options={[{label: "All conversations", value: "all"}, {label: "Needs attention", value: "new"}]} value={unread ? "new" : "all"} onChange={v => setUnread(v === "new")} />
       {rows.map((m) => (
         <Card key={m.id} onPress={() => router.push(`/messages/${m.id}`)}>
           <Badge label={`${m.language}${m.unread ? " · New" : ""}`} />
-          <Heading>{m.guest}</Heading>
+          <View style={{flexDirection: "row", gap: 12, alignItems: "center"}}><Avatar name={m.guest} /><Heading>{m.guest}</Heading></View>
           {m.demo && (
             <Badge
               warn

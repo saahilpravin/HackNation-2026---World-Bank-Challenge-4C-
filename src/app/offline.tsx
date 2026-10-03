@@ -15,6 +15,11 @@ import {
 } from "../components/ui";
 import { useStore } from "../state/store";
 export default function Offline() {
+  const { data } = useStore();
+  if (!data) return <Page title="Offline & AI"><Muted>Loading your settings…</Muted></Page>;
+  return <OfflineSettings />;
+}
+function OfflineSettings() {
   const { data, update, translationToken, setTranslationToken } = useStore();
   const [endpoint, setEndpoint] = useState(data?.translationEndpoint ?? "");
   const [token, setToken] = useState(translationToken);
@@ -78,13 +83,12 @@ export default function Offline() {
           Message understanding uses labelled demo fixtures. Review reply translation on mobile and web can connect to the laptop NLLB service. No on-device phone model is installed. Feedback analysis uses local English keyword rules.
         </Body>
         <Muted>
-          Download size, inference latency, accuracy and confidence: not
-          measured.
+          Phone model performance and translation accuracy have not been measured.
         </Muted>
       </Card>
       <Card>
         <Heading>Local outbox</Heading>
-        <Body>{data?.replies.length ?? 0} approved replies waiting</Body>
+        <Body>{data?.replies.length ?? 0} message replies queued locally · {data?.reviewReplies?.length ?? 0} review replies approved</Body>
         <Muted>
           Messaging transport is not connected. Replies stay on this device and
           are never automatically sent.

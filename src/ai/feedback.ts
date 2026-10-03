@@ -1,6 +1,6 @@
 import type { Data } from "../data/types.ts";
 
-export type Evidence = { id: string; kind: "review" | "message"; guest: string; text: string; demo: boolean };
+export type Evidence = { id: string; kind: "review" | "message"; guest: string; text: string; demo: boolean; canonicalEnglish?: string };
 export type Finding = { id: string; category: "love" | "improve" | "opportunity"; title: string; action: string; evidence: Evidence[] };
 export type FeedbackReport = { source: "local-rules" | "on-device-model"; modelVersion: string | null; analyzed: number; skipped: number; findings: Finding[] };
 // A model adapter must return only source IDs present in the supplied corpus.
@@ -13,6 +13,9 @@ const topics = [
   { id: "accessibility", label: "Accessibility", pattern: /\b(accessible|accessibility|wheelchair|steps)\b/i, action: "Check access needs with visitors and publish verified accessibility details." },
   { id: "family", label: "Family visits", pattern: /\b(children|kids|family|families)\b/i, action: "Ask families what they need, then trial a family-friendly session." },
   { id: "time", label: "Time and pacing", pattern: /\b(wait|waiting|rushed|longer|shorter|duration)\b/i, action: "Trial a different schedule and collect feedback on the pace." },
+  { id: "sunset", label: "Evening experiences", pattern: /\b(sunset|evening)\b/i, action: "Test interest in a capped sunset session before adding it to the schedule." },
+  { id: "retail", label: "Take-home products", pattern: /\b(gift|pack|beans|brewing)\b/i, action: "Try pre-orders for a small gift pack before committing to stock." },
+  { id: "sustainability", label: "Sustainable growing", pattern: /\b(composting|sustainable|sustainability)\b/i, action: "Pilot a practical growing workshop with a small group." },
 ];
 const praise = /\b(love[ds]?|great|wonderful|highlight|special|enjoyed|excellent)\b/i;
 const request = /\b(wish|would|could|hard|difficult|need|needs|rushed|waiting|can|how|where)\b/i;
@@ -29,7 +32,8 @@ export function analyzeFeedback(data: Pick<Data, "reviews" | "messages">, demo: 
     const positive: Evidence[] = [], needs: Evidence[] = [];
     for (const item of corpus) {
       // Match signals in the same clause to avoid transferring praise across "but".
-      const clauses = item.text.split(/[.!?;]|\bbut\b/i).filter(c => topic.pattern.test(c));
+      const analysisText = item.demo && item.canonicalEnglish ? item.canonicalEnglish : item.text;
+      const clauses = analysisText.split(/[.!?;]|\bbut\b/i).filter(c => topic.pattern.test(c));
       if (!clauses.length) continue;
       matched.add(`${item.kind}:${item.id}`);
       if (item.kind === "review" && clauses.some(c => praise.test(c) && !negatedPraise.test(c))) positive.push(item);

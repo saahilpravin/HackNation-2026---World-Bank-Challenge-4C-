@@ -43,7 +43,7 @@ export function BottomNavigation() {
           const selected =
             tab.href === "/"
               ? pathname === "/"
-              : pathname === tab.href || pathname.startsWith(`${tab.href}/`) || (tab.href === "/insights" && pathname.startsWith("/reviews/"));
+              : pathname === tab.href || pathname.startsWith(`${tab.href}/`) || (tab.href === "/insights" && (pathname.startsWith("/reviews/") || pathname.startsWith("/ideas/")));
           return (
             <Pressable
               key={tab.href}
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     gap: 7,
     paddingVertical: 9,
   },
-  active: { backgroundColor: "#EDF1FF" },
+  active: { backgroundColor: colors.lavender },
   label: { fontSize: 13, color: colors.muted, fontWeight: "500" },
   count: {
     position: "absolute",

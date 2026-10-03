@@ -19,3 +19,14 @@ TypeScript and lint pass. Nine tests pass, including clean first-launch data, ge
 
 ## Readability and navigation update
 Reduced dashboard text and removed the promotional hero. Added a persistent four-tab navigation bar with 64-point minimum targets, larger labels, unread count and selected-state semantics. Navigation remains available on detail/settings pages. Browser QA at phone width verified all four destinations, including message-detail to Bookings, selected-state attributes and the fixed navigation while scrolling. TypeScript, ESLint and web/iOS/Android bundle exports passed. Native device QA remains outstanding.
+
+## Feedback studio refresh
+- TypeScript and Expo lint pass.
+- 21 JavaScript tests pass, including review counts/languages, filter behavior, reply status and migration preserving existing approved review text.
+- 5 Python bridge tests pass.
+- Web/iOS/Android export succeeds.
+- Browser checked at 390 × 844: French review queue, English/Arabic reader, original text toggle and persistent bottom navigation.
+- Actual custom English → German NLLB request succeeded on the laptop in 8.804 seconds; this is a smoke test, not translation accuracy or phone performance.
+- Physical iPhone verification of this refresh remains necessary.
+
+- UI custom English → French NLLB translation succeeded (9.1 s); local approval persisted, and editing the draft cleared translation and disabled re-approval.

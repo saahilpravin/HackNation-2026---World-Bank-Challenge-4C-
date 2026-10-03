@@ -325,7 +325,7 @@ export const s = StyleSheet.create({
     marginBottom: 10,
   },
   title: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: "700",
     color: colors.ink,
     letterSpacing: -0.5,
@@ -334,19 +334,19 @@ export const s = StyleSheet.create({
     width: 46,
     height: 46,
     borderRadius: 16,
-    backgroundColor: "#EAEFFD",
+    backgroundColor: colors.lavender,
     alignItems: "center",
     justifyContent: "center",
   },
   card: {
     padding: 20,
-    borderRadius: 18,
+    borderRadius: 23,
     backgroundColor: "white",
     borderWidth: 1,
     borderColor: colors.line,
     gap: 10,
   },
-  heading: { fontSize: 18, fontWeight: "600", color: colors.ink },
+  heading: { fontSize: 19, fontWeight: "700", color: colors.ink },
   body: { fontSize: 16, lineHeight: 24, color: colors.ink },
   muted: { fontSize: 14, lineHeight: 22, color: colors.muted },
   badge: {
@@ -354,7 +354,7 @@ export const s = StyleSheet.create({
     paddingVertical: 6,
     alignSelf: "flex-start",
     borderRadius: 20,
-    backgroundColor: "#EDF0FF",
+    backgroundColor: colors.lavender,
   },
   button: {
     backgroundColor: colors.accent,
@@ -362,7 +362,7 @@ export const s = StyleSheet.create({
     padding: 16,
     minHeight: 52,
   },
-  secondary: { backgroundColor: "#EDF0FF" },
+  secondary: { backgroundColor: colors.lavender },
   label: { fontSize: 14, fontWeight: "700", color: colors.ink },
   input: {
     backgroundColor: "white",
@@ -373,7 +373,7 @@ export const s = StyleSheet.create({
     fontSize: 16,
     color: colors.ink,
   },
-  notice: { padding: 16, backgroundColor: "#F0F2F7", borderRadius: 14 },
+  notice: { padding: 16, backgroundColor: "#EEEAF5", borderRadius: 14 },
   row: { flexDirection: "row", gap: 12 },
   hero: { padding: 22, borderRadius: 18, backgroundColor: "#EDF1FF", gap: 12 },
   heroTitle: {

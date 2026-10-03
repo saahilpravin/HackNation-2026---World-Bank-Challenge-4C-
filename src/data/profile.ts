@@ -32,5 +32,6 @@ export function finishSetup(data: Data, profile: Profile): Data {
     bookings: data.bookings.filter((b) => !b.demo),
     reviews: data.reviews.filter((r) => !r.demo),
     replies: data.replies.filter((r) => !r.demo),
+    reviewReplies: data.reviewReplies?.filter(reply => data.reviews.some(r => r.id === reply.reviewId && !r.demo)),
   };
 }
