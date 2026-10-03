@@ -45,3 +45,16 @@ yarn-error.*
 .ai-cache/
 ai/translation/results/
 __pycache__/
+# Python
+ml/.venv/
+__pycache__/
+.ipynb_checkpoints/
+
+# Java
+backend/target/
+
+# Big model files: decide deliberately
+ml/artifacts/*.onnx
+ml/artifacts/emb_*.npy
+ml/artifacts/encoder/*.onnx
+ml/data/yelp/
