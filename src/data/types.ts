@@ -44,7 +44,9 @@ export type ReviewReply = {
   writingLanguage: string;
   customerLanguage: string;
   translatedText: string;
-  source: "local-template" | "manual" | "on-device-model";
+  source: "local-template" | "manual" | "on-device-model" | "local-laptop-model";
+  modelVersion?: string | null;
+  latencyMs?: number;
   approvedAt: string;
 };
 export type Review = {

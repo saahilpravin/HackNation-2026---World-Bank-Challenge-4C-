@@ -44,7 +44,7 @@ export default function Offline() {
         <Heading>AI model status</Heading>
         <Badge label="No model installed" warn />
         <Body>
-          Message understanding and translations use labelled demo fixtures. The feedback assistant uses local English keyword rules; no language model is installed.
+          Message understanding uses labelled demo fixtures. Review reply translation in the web preview can use the laptop NLLB service. No on-device phone model is installed. Feedback analysis uses local English keyword rules.
         </Body>
         <Muted>
           Download size, inference latency, accuracy and confidence: not

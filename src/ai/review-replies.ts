@@ -1,7 +1,7 @@
 import type { Review } from "../data/types.ts";
 export const replyLanguages = ["English", "French", "Kiswahili"] as const;
 export type ReplyLanguage = typeof replyLanguages[number];
-export type ReplyOutput = { text: string; source: "local-template" | "on-device-model"; modelVersion: string | null };
+export type ReplyOutput = { text: string; source: "local-template" | "on-device-model" | "local-laptop-model"; modelVersion: string | null; latencyMs?: number };
 export interface ReviewReplyProvider {
   suggest(review: Review, language: ReplyLanguage): Promise<ReplyOutput>;
   translate(text: string, from: ReplyLanguage, to: ReplyLanguage): Promise<ReplyOutput>;

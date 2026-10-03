@@ -1,3 +1,5 @@
+import { Platform } from "react-native";
+import { translateOnLaptop } from "../../ai/laptop-translation";
 import { useRef, useState } from "react";
 import { useLocalSearchParams } from "expo-router";
 import { Page, Card, Heading, Body, Badge, Button, Field, Muted, Notice } from "../../components/ui";
@@ -21,12 +23,15 @@ function ReplyForm() {
   const [draft, setDraft] = useState(saved?.draft ?? "");
   const [example, setExample] = useState("");
   const [translated, setTranslated] = useState(saved?.translatedText ?? "");
-  const [source, setSource] = useState<"manual" | "local-template" | "on-device-model">(saved?.source ?? "manual");
+  const [source, setSource] = useState<"manual" | "local-template" | "on-device-model" | "local-laptop-model">(saved?.source ?? "manual");
+  const [modelVersion, setModelVersion] = useState<string | null>(saved?.modelVersion ?? null);
+  const [latencyMs, setLatencyMs] = useState<number | undefined>(saved?.latencyMs);
+  const [translating, setTranslating] = useState(false);
   const [key, setKey] = useState(saved ? replyKey(saved.draft, saved.writingLanguage, saved.customerLanguage) : "");
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
   const revision = useRef(0);
-  const invalidate = () => { revision.current++; setTranslated(""); setKey(""); setStatus(""); };
+  const invalidate = () => { revision.current++; setTranslated(""); setKey(""); setStatus(""); setModelVersion(null); setLatencyMs(undefined); };
   const suggest = async () => {
     if (!review) return;
     const version = revision.current;
@@ -34,18 +39,22 @@ function ReplyForm() {
     if (version === revision.current) setExample(output.text);
   };
   const translate = async () => {
+    if (translating) return;
     const version = revision.current;
+    setTranslating(true);
+    setStatus("Translating…");
     try {
-      const output = await templateReplies.translate(draft, from, to);
+      const output = Platform.OS === "web" ? await translateOnLaptop(draft, from, to) : await templateReplies.translate(draft, from, to);
       if (version !== revision.current) return;
-      setTranslated(output.text); setSource("local-template"); setKey(replyKey(draft, from, to)); setStatus(from === to ? "Same language: your response is shown unchanged." : "Template language version ready. Check the wording before approval.");
+      setTranslated(output.text); setSource(output.source); setModelVersion(output.modelVersion); setLatencyMs(output.latencyMs); setKey(replyKey(draft, from, to)); setStatus(from === to ? "Same language: your response is shown unchanged." : output.source === "local-laptop-model" ? "NLLB translation ready. Check meaning and details before approval." : "Template language version ready. Check the wording before approval.");
     } catch (e) { if (version === revision.current) setStatus(e instanceof Error ? e.message : "Translation unavailable."); }
+    finally { setTranslating(false); }
   };
   const approve = async () => {
     if (!translated.trim() || key !== replyKey(draft, from, to) || !review) return;
     setBusy(true);
     try {
-      await update(d => ({ ...d, reviewReplies: [...(d.reviewReplies ?? []).filter(r => r.reviewId !== id), { reviewId: id, draft, writingLanguage: from, customerLanguage: to, translatedText: translated.trim(), source, approvedAt: new Date().toISOString() }] }));
+      await update(d => ({ ...d, reviewReplies: [...(d.reviewReplies ?? []).filter(r => r.reviewId !== id), { reviewId: id, draft, writingLanguage: from, customerLanguage: to, translatedText: translated.trim(), source, modelVersion, latencyMs, approvedAt: new Date().toISOString() }] }));
       setStatus("Approved reply saved on this device. Nothing has been posted to a review platform.");
     } catch { setStatus("Could not save. Please try again; your response is still here."); }
     finally { setBusy(false); }
@@ -67,13 +76,14 @@ function ReplyForm() {
     </Card>
     <Card><Heading>Write your response</Heading>
       <Field label={`Your response (${from})`} value={draft} onChange={v => { if (!busy) { invalidate(); setDraft(v); } }} multiline />
-      <Button label={`Translate to ${to}`} onPress={() => void translate()} disabled={!draft.trim() || busy} />
-      <Muted>Offline translation currently supports unchanged example templates only. Custom text requires a translation model; nothing is sent to a cloud service.</Muted>
+      <Button label={translating ? "Translating…" : `Translate to ${to}`} onPress={() => void translate()} disabled={!draft.trim() || busy || translating} />
+      <Muted>{Platform.OS === "web" ? "NLLB translates your custom text on this laptop. No cloud inference. This preview connection is not an on-device phone model." : "On-device NLLB is not installed. Native translation currently supports unchanged templates only."}</Muted>
     </Card>
-    <Card><Heading>Customer-language response</Heading><Badge label={source === "manual" ? "Manually entered" : source === "on-device-model" ? "On-device model" : "Template / same-language text"} />
-      <Field label={`Final response (${to})`} value={translated} onChange={v => { if (!busy) { setTranslated(v); setSource("manual"); setKey(replyKey(draft, from, to)); setStatus(""); } }} multiline />
+    <Card><Heading>Customer-language response</Heading><Badge label={source === "manual" ? "Manually entered" : source === "local-laptop-model" ? "NLLB · Laptop model" : source === "on-device-model" ? "On-device model" : "Template / same-language text"} />
+      <Field label={`Final response (${to})`} value={translated} onChange={v => { if (!busy && !translating) { setTranslated(v); setSource("manual"); setModelVersion(null); setLatencyMs(undefined); setKey(replyKey(draft, from, to)); setStatus(""); } }} multiline />
+      {modelVersion && <Muted>{modelVersion}{latencyMs !== undefined ? ` · ${(latencyMs / 1000).toFixed(1)} s` : ""}</Muted>}
       <Muted>You can enter a translation yourself. Changing the draft or either language clears the previous version so you can check it again.</Muted>
-      <Button label={busy ? "Saving…" : "Approve and save locally"} onPress={() => void approve()} disabled={busy || !draft.trim() || !translated.trim() || key !== replyKey(draft, from, to)} />
+      <Button label={busy ? "Saving…" : "Approve and save locally"} onPress={() => void approve()} disabled={busy || translating || !draft.trim() || !translated.trim() || key !== replyKey(draft, from, to)} />
     </Card>
     {!!status && <Notice text={status} />}
   </Page>;

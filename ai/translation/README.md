@@ -34,3 +34,15 @@ Checks:
 ```sh
 python3.12 -m unittest discover -s ai/translation -p 'test_*.py'
 ```
+
+## Connected web preview
+
+After creating the local checkpoint, start the bridge from the repository root:
+
+```sh
+HF_HOME="$PWD/.ai-cache" HF_HUB_OFFLINE=1 .venv-ai/bin/python ai/translation/server.py
+```
+
+Keep this terminal running, then open the Expo web preview on localhost:8082 or localhost:8084. Open Insights → a review → write your response → choose the customer's language → Translate. The web client calls 127.0.0.1:8085. Inference stays on the laptop, uses cached weights only, and requires no cloud API key. The bridge binds only to loopback, permits only those preview origins, limits input sizes, and serializes inference requests. It does not log draft text. An unavailable service returns an error; it never silently substitutes a template for model output.
+
+The review reply page records laptop-model provenance and inference latency on approval. Replies are saved locally, not published. Mobile native builds continue to use explicit template translation because an in-app NLLB runtime is not installed. The localhost bridge cannot be reached from a separate phone and is not a phone-offline feature. Personalized reply suggestions still use authored examples: NLLB is a translator, not an instruction model.

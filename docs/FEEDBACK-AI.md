@@ -21,3 +21,5 @@ Requested inputs from the team: priority language pairs, actual dataset/model do
 ## Selected translation model experiment
 
 The team selected facebook/nllb-200-distilled-600M. `ai/translation/run.py` runs real local laptop inference with an isolated Python environment. See `ai/translation/README.md` for online download, offline checkpoint use and evaluation procedure. This is separate from the current app template provider and is not an on-device mobile integration. It translates text; review response generation still needs an instruction-following model.
+
+The review reply web preview now connects to the cached NLLB model through the loopback-only `ai/translation/server.py` bridge. Custom text is translated with real laptop inference and labeled local-laptop-model. The mobile native provider remains the authored template provider. Draft/language changes invalidate asynchronous results; approval records model version and latency. No review is automatically published.
