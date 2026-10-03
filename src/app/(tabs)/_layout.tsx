@@ -8,12 +8,12 @@ export default function Layout() {
   if (!data.profile) return <Redirect href="/onboarding" />;
   return (
     <Tabs tabBar={() => null} screenOptions={{ headerShown: false }}>
-      {(["index", "reviews", "bookings", "insights"] as const).map(
+      {(["index", "reviews", "bookings", "insights", "help"] as const).map(
         (name, i) => (
           <Tabs.Screen
             key={name}
             name={name}
-            options={{ title: ["Home", "Reviews", "Bookings", "Insights"][i] }}
+            options={{ title: ["Home", "Reviews", "Bookings", "Insights", "Help"][i] }}
           />
         ),
       )}

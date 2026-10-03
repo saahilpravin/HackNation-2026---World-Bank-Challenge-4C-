@@ -19,6 +19,7 @@ const tabs = [
     icon: "bar-chart-outline",
     activeIcon: "bar-chart",
   },
+  { label: "Help", href: "/help", icon: "help-circle-outline", activeIcon: "help-circle" },
 ] as const;
 export function BottomNavigation() {
   const pathname = usePathname();

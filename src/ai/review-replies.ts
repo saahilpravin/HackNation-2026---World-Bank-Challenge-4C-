@@ -1,6 +1,7 @@
 import type { Review } from "../data/types.ts";
-export const replyLanguages = ["English", "French", "Kiswahili", "German", "Spanish", "Italian", "Portuguese", "Arabic", "Hindi", "Chinese"] as const;
-export type ReplyLanguage = typeof replyLanguages[number];
+import languageCatalog from "../data/nllb-languages.json" with { type: "json" };
+export const replyLanguages: readonly string[] = languageCatalog.map(language => language.name);
+export type ReplyLanguage = string;
 export type ReplyOutput = { text: string; source: "local-template" | "on-device-model" | "local-laptop-model"; modelVersion: string | null; latencyMs?: number };
 export interface ReviewReplyProvider {
   suggest(review: Review, language: ReplyLanguage): Promise<ReplyOutput>;
@@ -30,7 +31,9 @@ const generic: Record<string, string> = {
 export const templateReplies: ReviewReplyProvider = {
   async suggest(review, language) {
     const tone = review.rating === 5 ? "positive" : review.rating >= 3 ? "neutral" : "negative";
-    return { text: templates[tone][language as keyof typeof templates.positive] ?? generic[language], source: "local-template", modelVersion: null };
+    const text = templates[tone][language as keyof typeof templates.positive] ?? generic[language];
+    if (!text) throw new Error(`No authored example in ${language} yet. Write your own reply, or translate an English example with the connected model.`);
+    return { text, source: "local-template", modelVersion: null };
   },
   async translate(text, from, to) {
     if (!text.trim()) throw new Error("Write a response first.");

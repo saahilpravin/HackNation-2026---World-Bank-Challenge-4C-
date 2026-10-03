@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { Pressable, Text, View, StyleSheet } from "react-native";
+import { Pressable, Text, View, StyleSheet, ScrollView, TextInput } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "./theme";
 export function Hero({ eyebrow, title, children }: { eyebrow: string; title: string; children?: ReactNode }) {
@@ -16,10 +16,18 @@ export function Chips({ options, value, onChange }: { options: { label: string; 
 }
 export function LanguagePicker({ label, value, languages, onChange, disabled = false }: { label: string; value: string; languages: readonly string[]; onChange: (language: string) => void; disabled?: boolean }) {
   const [expanded, setExpanded] = useState(false);
+  const [query, setQuery] = useState("");
+  const matches = languages.filter(language => language.toLowerCase().includes(query.trim().toLowerCase()));
   return <View style={{ gap: 10 }}>
     <Text style={{ color: colors.ink, fontSize: 14, fontWeight: "700" }}>{label}</Text>
     <Pressable accessibilityRole="button" accessibilityLabel={`${label}: ${value}. Change language`} accessibilityState={{ expanded, disabled }} disabled={disabled} onPress={() => setExpanded(!expanded)} style={{ borderWidth: 1, borderColor: colors.line, borderRadius: 14, padding: 14, backgroundColor: "#FAF9FC", flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}><Text style={{ color: colors.accent, fontWeight: "700", fontSize: 15 }}>{value}</Text><Ionicons name={expanded ? "chevron-up" : "chevron-down"} color={colors.accent} size={18} /></Pressable>
-    {expanded && <View style={styles.chips}>{languages.map(language => <Pressable key={language} disabled={disabled} accessibilityRole="button" accessibilityLabel={`${label}: ${language}`} accessibilityState={{ selected: value === language, disabled }} onPress={() => { onChange(language); setExpanded(false); }} style={[styles.language, value === language && { backgroundColor: colors.lavender, borderColor: colors.accent }]}><Text style={{ color: value === language ? colors.accent : colors.muted, fontSize: 13, fontWeight: "600" }}>{value === language ? "✓ " : ""}{language}</Text></Pressable>)}</View>}
+    {expanded && <View style={{ borderWidth: 1, borderColor: colors.line, borderRadius: 14, overflow: "hidden", backgroundColor: "white" }}>
+      <TextInput accessibilityLabel={`${label}: Search languages`} placeholder={`Search ${languages.length} languages`} value={query} onChangeText={setQuery} onKeyPress={event => { if (event.nativeEvent.key === "Escape") setExpanded(false); }} style={{ padding: 14, fontSize: 15, color: colors.ink, borderBottomWidth: 1, borderBottomColor: colors.line }} />
+      <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled" style={{ maxHeight: 250 }}>
+        {matches.map(language => <Pressable key={language} disabled={disabled} accessibilityRole="button" accessibilityLabel={`${label}: ${language}`} accessibilityState={{ selected: value === language, disabled }} onPress={() => { onChange(language); setExpanded(false); setQuery(""); }} style={{ minHeight: 48, padding: 14, borderBottomWidth: 1, borderBottomColor: colors.line, backgroundColor: value === language ? colors.lavender : "white", flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}><Text style={{ flex: 1, color: colors.ink, fontSize: 15 }}>{language}</Text>{value === language && <Ionicons name="checkmark" size={18} color={colors.accent} />}</Pressable>)}
+        {!matches.length && <Text style={{ padding: 16, color: colors.muted }}>No matching languages. Try another name.</Text>}
+      </ScrollView>
+    </View>}
   </View>;
 }
 export function Avatar({ name, index = 0 }: { name: string; index?: number }) {

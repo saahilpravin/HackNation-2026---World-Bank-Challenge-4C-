@@ -6,7 +6,7 @@ from pathlib import Path
 import time
 
 MODEL = "facebook/nllb-200-distilled-600M"
-LANGUAGES = {"English": "eng_Latn", "French": "fra_Latn", "Kiswahili": "swh_Latn", "German": "deu_Latn", "Spanish": "spa_Latn", "Italian": "ita_Latn", "Portuguese": "por_Latn", "Arabic": "arb_Arab", "Hindi": "hin_Deva", "Chinese": "zho_Hans"}
+LANGUAGES = {row["name"]: row["code"] for row in json.loads((Path(__file__).resolve().parents[2] / "src/data/nllb-languages.json").read_text())}
 
 
 def validate(row):
