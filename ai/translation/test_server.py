@@ -36,6 +36,20 @@ class Bridge(unittest.TestCase):
             service.server_close()
             thread.join()
 
+    def test_final_demo_origins_can_reach_loopback_translation(self):
+        service = ThreadingHTTPServer(("127.0.0.1", 0), handler(FakeEngine()))
+        service.RequestHandlerClass = handler(FakeEngine(), "127.0.0.1", service.server_port)
+        thread = threading.Thread(target=service.serve_forever, daemon=True)
+        thread.start()
+        try:
+            for origin in ["http://localhost:8082", "http://localhost:8087", "http://127.0.0.1:8088"]:
+                req = urllib.request.Request(f"http://127.0.0.1:{service.server_port}/health", headers={"Origin":origin})
+                with urllib.request.urlopen(req) as response:
+                    self.assertEqual(response.headers["Access-Control-Allow-Origin"], origin)
+                    self.assertTrue(json.load(response)["ready"])
+        finally:
+            service.shutdown(); service.server_close(); thread.join()
+
     def test_bind_excludes_public_and_all_interface_addresses(self):
         for bind in ["0.0.0.0", "8.8.8.8", "224.0.0.1"]:
             with self.assertRaises(ValueError): validate_bind(bind)

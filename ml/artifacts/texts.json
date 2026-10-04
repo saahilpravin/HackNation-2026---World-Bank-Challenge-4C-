@@ -1,0 +1,45 @@
+{
+  "en": {
+    "insights": {
+      "problem": "{count} of {total} analysed reviews mention a concern about {aspect}.",
+      "strength": "{count} of {total} analysed reviews praise {aspect}.",
+      "unread": "Some reviews need human checking and are excluded from the findings. Read their original text before drawing conclusions.",
+      "priority": {
+        "high": "Repeated concern",
+        "medium": "Mentioned twice",
+        "low": "Single mention"
+      },
+      "aspect_names": {
+        "guide": "Tour guide",
+        "price_value": "Value for money",
+        "communication": "Communication",
+        "facilities": "Facilities",
+        "access_transport": "Getting there",
+        "food": "Food and refreshments",
+        "other": "Other feedback"
+      },
+      "actions": {
+        "guide": "Review guide preparation and guest support.",
+        "price_value": "Review the price and clearly describe what is included.",
+        "communication": "Make important information easier to find before the visit.",
+        "facilities": "Check the facilities mentioned in the supporting reviews.",
+        "access_transport": "Check arrival directions and transport information.",
+        "food": "Review the food and refreshments mentioned by visitors.",
+        "other": "Read the supporting feedback before choosing a change."
+      }
+    },
+    "reply": {
+      "opening": {
+        "positive": "Thank you for sharing your experience.",
+        "negative": "Thank you for letting us know about your experience.",
+        "mixed": "Thank you for sharing what worked and what could be better.",
+        "neutral": "Thank you for your feedback."
+      },
+      "closing": {
+        "positive": "We appreciate your feedback.",
+        "negative": "We will review the points you raised."
+      },
+      "aspect": {}
+    }
+  }
+}

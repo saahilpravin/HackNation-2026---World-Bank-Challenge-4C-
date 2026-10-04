@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/v1")
-@CrossOrigin(origins = "*")   // dev only; native apps don't need CORS, a web build does
+@CrossOrigin(origins = {"http://localhost:8082", "http://127.0.0.1:8082", "http://localhost:8084", "http://127.0.0.1:8084", "http://localhost:8087", "http://127.0.0.1:8087", "http://localhost:8088", "http://127.0.0.1:8088"})   // dev only; native apps don't need CORS, a web build does
 public class ReviewController {
     private static final int MAX_REVIEWS = 500;
 
@@ -34,6 +34,7 @@ public class ReviewController {
 
     @PostMapping("/reviews/analyze")
     public List<Dto.Analysis> analyze(@RequestBody Dto.BatchRequest req) throws Exception {
+        require(req != null, "request is required");
         checkBatch(req.reviews());
         List<Dto.Analysis> out = new ArrayList<>();
         for (Dto.ReviewIn r : req.reviews()) out.add(classifier.analyze(r));
@@ -42,6 +43,7 @@ public class ReviewController {
 
     @PostMapping("/insights")
     public Dto.InsightsResponse insights(@RequestBody Dto.InsightsRequest req) throws Exception {
+        require(req != null, "request is required");
         checkBatch(req.reviews());
         return insights.build(req);
     }
@@ -54,7 +56,18 @@ public class ReviewController {
     private static void checkBatch(List<Dto.ReviewIn> l) {
         require(l != null && !l.isEmpty() && l.size() <= MAX_REVIEWS,
                 "reviews must contain 1 to " + MAX_REVIEWS + " items");
-        for (Dto.ReviewIn r : l) require(r.text() != null, "every review needs text");
+        java.util.Set<Integer> ids = new java.util.HashSet<>();
+        for (Dto.ReviewIn r : l) {
+            require(r != null && r.text() != null && !r.text().isBlank() && r.text().length() <= 4000,
+                    "every review needs nonempty text of at most 4000 characters");
+            require(ids.add(r.id()), "review IDs must be unique");
+            require(r.rating() == null || (r.rating() >= 1 && r.rating() <= 5), "rating must be between 1 and 5");
+            require(r.language() == null || r.language().length() <= 32, "language code is too long");
+            if (r.date() != null) {
+                try { java.time.LocalDate.parse(r.date()); }
+                catch (java.time.format.DateTimeParseException e) { require(false, "date must be YYYY-MM-DD"); }
+            }
+        }
     }
 
     private static void require(boolean ok, String msg) {

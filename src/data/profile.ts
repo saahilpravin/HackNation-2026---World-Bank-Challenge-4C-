@@ -27,6 +27,7 @@ export function isDemoProfile(profile: Profile): boolean {
 export function finishSetup(data: Data, profile: Profile): Data {
   return {
     ...data,
+    insightsCache: undefined,
     profile: { ...profile, demoBusiness: false },
     messages: data.messages.filter((m) => !m.demo),
     bookings: data.bookings.filter((b) => !b.demo),

@@ -44,6 +44,7 @@ public class ClassifierService {
     private String prefix;      // "" or "query: " depending on the encoder
     private String version;
     private int minChars;
+    private final Set<String> disabled = new HashSet<>();
     private final Set<String> testedLangs = new HashSet<>();
 
     // ---------- 1. Startup: load everything once ----------
@@ -53,7 +54,8 @@ public class ClassifierService {
         Path dir = Path.of(modelDir);
         JsonNode h = new ObjectMapper().readTree(dir.resolve("head_v1.json").toFile());
 
-        version = h.get("version").asText();
+        version = h.get("version").asText() + "@" + java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(java.nio.file.Files.readAllBytes(dir.resolve("head_v1.json")))).substring(0, 12);
+        h.path("disabled").forEach(n -> disabled.add(n.asText()));
         prefix = h.get("prefix").asText();
         minChars = h.get("min_chars").asInt();
         h.get("tested_langs").forEach(n -> testedLangs.add(n.asText()));
@@ -143,7 +145,7 @@ public class ClassifierService {
 
     // ---------- 4. Head: vector -> one probability per label ----------
 
-    public double[] scores(String raw) throws OrtException {
+    public synchronized double[] scores(String raw) throws OrtException {
         float[] e = embed(normalize(raw));
         double[] p = new double[labels.length];
         for (int j = 0; j < labels.length; j++) {
@@ -156,7 +158,7 @@ public class ClassifierService {
 
     // ---------- 5. Decision logic: scores -> API response ----------
 
-    public Dto.Analysis analyze(Dto.ReviewIn r) throws OrtException {
+    public synchronized Dto.Analysis analyze(Dto.ReviewIn r) throws OrtException {
         if (labels == null) {
             throw new org.springframework.web.server.ResponseStatusException(
                     org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE, "model not loaded");
@@ -171,7 +173,7 @@ public class ClassifierService {
             for (int k = 0; k < parts.size(); k++) ps[k] = parts.size() == 1 ? whole : scores(parts.get(k));
 
             for (int j = 0; j < labels.length; j++) {
-                if (whole[j] < thr[j]) continue;
+                if (disabled.contains(labels[j]) || whole[j] < thr[j]) continue;
                 int best = 0;
                 for (int k = 1; k < parts.size(); k++) if (ps[k][j] > ps[best][j]) best = k;
                 String l = labels[j];
@@ -193,7 +195,7 @@ public class ClassifierService {
                 hits.isEmpty() || untested, version);
     }
 
-    public boolean ready() { return labels != null; }
+    public boolean ready() { return labels != null && session != null && tokenizer != null; }
 
     /** Embedding for any raw text (used by IssueMatcher). */
     public float[] embedText(String raw) throws OrtException {

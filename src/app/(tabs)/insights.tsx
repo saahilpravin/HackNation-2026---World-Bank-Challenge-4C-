@@ -1,51 +1,82 @@
-import { useMemo, useState } from "react";
-import { Text, View, Pressable, StyleSheet, useWindowDimensions } from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ActivityIndicator, Platform, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Page, Card, Heading, Body, Muted, Button, colors } from "../../components/ui";
-import { categoryColors } from "../../components/theme";
-import { Hero, Stars, Avatar } from "../../components/studio";
 import { useStore } from "../../state/store";
-import { ideasFor } from "../../ai/ideas";
-import { categorizeReviews } from "../../ai/review-categories";
-import { reviewState } from "../../data/review-tools";
 import { isDemoProfile } from "../../data/profile";
+import { fetchInsights, insightsKey, type Finding } from "../../ai/insights-api";
+
 export default function Insights() {
- const {data}=useStore();
- const {width}=useWindowDimensions();
- const [view,setView]=useState("categories");
- const [selected,setSelected]=useState("guide");
- const demo=!!data?.profile&&isDemoProfile(data.profile);
- const reviews=useMemo(()=>(data?.reviews??[]).filter(r=>r.demo===demo),[data?.reviews,demo]);
- const categories=useMemo(()=>categorizeReviews(reviews),[reviews]);
- const ideas=useMemo(()=>ideasFor(reviews),[reviews]);
- if(!data) return null;
- const category=categories.find(c=>c.id===selected)!;
- const unanswered=reviews.filter(r=>reviewState(r,data.reviewReplies)==="new").length;
- const average=reviews.length?(reviews.reduce((sum,r)=>sum+r.rating,0)/reviews.length).toFixed(1):"—";
- return <Page title="Visitor insights" subtitle={`${data.profile?.name ?? "Your business"} · Understand the experience behind every review.`}>
-  <Hero eyebrow="REVIEW INTELLIGENCE" title={"Know what’s working.\nSee what to improve."}><Text style={s.heroBody}>A clear view of your visitors’ feedback, organised around the things that matter.</Text><View style={s.heroFooter}><View style={s.liveDot}/><Text style={s.heroCaption}>Local workspace · {reviews.length} reviews</Text></View></Hero>
-  <View style={s.stats}>{[{label:"Average rating",value:average,icon:"star-outline"},{label:"Need a reply",value:unanswered,icon:"chatbubble-outline"},{label:"Review languages",value:new Set(reviews.map(r=>r.language)).size,icon:"language-outline"}].map(stat=><View key={stat.label} style={s.stat}><Ionicons name={stat.icon as "star-outline"} size={19} color={colors.accent}/><Text style={s.statNumber}>{stat.value}</Text><Text style={s.statLabel}>{stat.label}</Text></View>)}</View>
-  <View style={s.segment}>{[{id:"categories",title:"Review categories"},{id:"ideas",title:"Suggested improvements"}].map(tab=><Pressable key={tab.id} accessibilityRole="tab" accessibilityState={{selected:view===tab.id}} aria-selected={view===tab.id} onPress={()=>setView(tab.id)} style={[s.segmentItem,view===tab.id&&s.segmentActive]}><Text style={[s.segmentText,view===tab.id&&{color:colors.ink}]}>{tab.title}</Text></Pressable>)}</View>
-  {view==="categories"?<>
-   <View style={s.sectionHead}><View style={{flex:1}}><Heading>Explore by category</Heading><Muted>Select a category to see the actual feedback.</Muted></View><Text style={s.smallLabel}>{categories.length} CATEGORIES</Text></View>
-   <View style={s.grid}>{categories.map((item,index)=><Pressable key={item.id} accessibilityRole="button" accessibilityLabel={`${item.title}: ${item.reviews.length} reviews`} accessibilityState={{selected:selected===item.id}} onPress={()=>setSelected(item.id)} style={[s.category, {flexBasis:width>=800?"30%":"45%"},selected===item.id&&s.selectedCategory,{backgroundColor:categoryColors[index%categoryColors.length].bg,borderColor:selected===item.id?categoryColors[index%categoryColors.length].ink:colors.line}]}><View style={s.categoryTop}><View style={[s.icon,{backgroundColor:"white"},selected===item.id&&{backgroundColor:categoryColors[index%categoryColors.length].ink}]}><Ionicons name={item.icon} size={21} color={selected===item.id?"white":categoryColors[index%categoryColors.length].ink}/></View><Text style={s.categoryCount}>{item.reviews.length}</Text></View><Text style={s.categoryTitle}>{item.title}</Text><Text style={s.categoryCaption}>{item.reviews.length?"View feedback →":"No feedback yet"}</Text></Pressable>)}</View>
-   <Card><View style={s.sectionHead}><View style={{flex:1}}><Text style={s.smallLabel}>SELECTED CATEGORY</Text><Heading>{category.title}</Heading></View><Ionicons name={category.icon} size={30} color={colors.accent}/></View><Body>{category.description}</Body><Muted>{category.reviews.length} matching reviews. A review can appear in more than one category. Counts reflect mentions, not quality scores.</Muted></Card>
-   {category.reviews.slice(0,5).map(review=><Card key={review.id} onPress={()=>router.push(`/reviews/${review.id}`)}><View style={s.sectionHead}><Avatar name={review.guest}/><View style={{flex:1}}><Heading>{review.guest}</Heading><Muted>{review.language} · {review.date}</Muted></View><Stars rating={review.rating}/></View><Body>{review.canonicalEnglish??review.text}</Body><View style={s.sectionHead}><Text style={s.categoryCaption}>{reviewState(review,data.reviewReplies)==="new"?"Awaiting your response":"Response recorded"}</Text><Ionicons name="arrow-forward" size={20} color={colors.accent}/></View></Card>)}
-   {!category.reviews.length&&<Card><Heading>No matching feedback yet</Heading><Body>There are no comments about {category.title.toLowerCase()} in this workspace. This does not indicate a positive or negative result.</Body></Card>}
-   {category.reviews.length>5&&<Button label="See all reviews" secondary onPress={()=>router.navigate("/reviews")}/>}
-  </>:<>
-   <View><Heading>Practical improvements</Heading><Muted>Small changes to test, each linked to supporting reviews.</Muted></View>
-   {ideas.map((idea,index)=><Card key={idea.id} onPress={()=>router.push(`/ideas/${idea.id}?sample=${demo?"1":"0"}`)}><View style={s.sectionHead}><View style={s.icon}><Ionicons name={idea.icon} color={colors.accent} size={24}/></View><Text style={s.smallLabel}>RECOMMENDATION {String(index+1).padStart(2,"0")}</Text><View style={{flex:1}}/><Ionicons name="arrow-up-outline" size={18} color={colors.muted}/></View><Heading>{idea.title}</Heading><Body>{idea.summary}</Body><View style={s.ideaFooter}><Text style={s.effort}>{idea.effort}</Text><Muted>{idea.evidence.length} supporting reviews</Muted></View></Card>)}
-   {!ideas.length&&<Card><Heading>More feedback is needed</Heading><Body>Suggestions will appear when this workspace contains matching review themes.</Body></Card>}
-  </>}
-  <View style={s.source}><Ionicons name="information-circle-outline" size={18} color={colors.muted}/><View style={{flex:1}}><Muted>{demo?"Demo: 150 synthetic reviews from 15 scenarios. ":""}Categories use keyword matching; improvements are curated examples. No live review platform or generative analysis model is connected.</Muted></View></View>
- </Page>;
+  const { data, update } = useStore();
+  const demo = !!data?.profile && isDemoProfile(data.profile);
+  const reviews = useMemo(() => (data?.reviews ?? []).filter(r => r.demo === demo), [data?.reviews, demo]);
+  const language = data?.profile?.language ?? "English";
+  const endpoint = data?.analysisEndpoint ?? "http://127.0.0.1:8080";
+  const key = useMemo(() => insightsKey(reviews, language, endpoint), [reviews, language, endpoint]);
+  const currentKey = useRef(key);
+  const updateRef = useRef(update);
+  useEffect(() => { currentKey.current = key; updateRef.current = update; }, [key, update]);
+  const saved = data?.insightsCache?.key === key ? data.insightsCache : null;
+  const [busy, setBusy] = useState(false), [error, setError] = useState("");
+  const cached = !!saved;
+  useEffect(() => {
+    if (cached || !reviews.length || (Platform.OS !== "web" && !data?.analysisEndpoint)) { void Promise.resolve().then(() => setBusy(false)); return; }
+    const controller = new AbortController();
+    void Promise.resolve().then(() => {
+      if (controller.signal.aborted) return null;
+      setBusy(true); setError("");
+      return fetchInsights(reviews, language, endpoint, controller.signal);
+    }).then(async result => {
+      if (!result || controller.signal.aborted || currentKey.current !== key) return;
+      await updateRef.current(d => currentKey.current === key ? { ...d, insightsCache: { key, savedAt: new Date().toISOString(), result } } : d);
+    }).catch(e => { if (!controller.signal.aborted) setError(e instanceof Error ? e.message : "Insights are unavailable."); }).finally(() => { if (!controller.signal.aborted) setBusy(false); });
+    return () => { controller.abort(); };
+  }, [key, cached, reviews, language, endpoint, data?.analysisEndpoint]);
+  if (!data) return <Page title="Insights"><ActivityIndicator color={colors.accent} /><Muted>Loading your saved reviews…</Muted></Page>;
+  const result = saved?.result;
+  const refresh = async () => {
+    if (busy) return;
+    setBusy(true); setError("");
+    try {
+      const result = await fetchInsights(reviews, language, endpoint);
+      if (currentKey.current === key) await update(d => currentKey.current === key ? { ...d, insightsCache: { key, savedAt: new Date().toISOString(), result } } : d);
+    } catch (e) { setError(e instanceof Error ? e.message : "Could not load insights."); }
+    finally { setBusy(false); }
+  };
+  const average = result?.quantitative.average_rating ?? (reviews.length ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : null);
+  const renderFinding = (finding: Finding) => <View key={finding.aspect} style={styles.finding}>
+    <Text style={styles.findingTitle}>{finding.label}</Text><Body>{finding.summary}</Body>
+    {finding.quotes.slice(0, 2).map(quote => <View key={quote.review_id} style={styles.quote}><Body>“{quote.text}”</Body><Button secondary label={`Read ${reviews.find(r => r.id === quote.review_id)?.guest ?? "review"}`} onPress={() => router.push(`/reviews/${quote.review_id}`)} /></View>)}
+  </View>;
+  return <Page title="Insights" subtitle={`${data.profile?.name ?? "Your business"} · A clear view of your reviews.`}>
+    <Card>
+      <View style={styles.heading}><View style={styles.icon}><Ionicons name="sparkles-outline" color={colors.accent} size={24} /></View><View style={{ flex: 1 }}><Heading>Business overview</Heading><Muted>{result ? "Local review analysis · saved on this device" : "Your reviews, brought together"}</Muted></View></View>
+      {busy && <View style={styles.heading}><ActivityIndicator color={colors.accent} /><Body>Reading your reviews…</Body></View>}
+      {result ? <><Body>{result.meta.analysed} of {result.meta.total} reviews contributed to the findings. {result.qualitative.strengths[0] ? `Visitors most often praise ${result.qualitative.strengths[0].label.toLowerCase()}. ` : ""}{result.qualitative.problems[0] ? `The most mentioned concern is ${result.qualitative.problems[0].label.toLowerCase()}.` : "No concerns were detected among the analysed reviews."}</Body><Muted>{result.meta.unread} reviews need human checking. Findings use a local classifier and fixed wording, not an LLM-generated summary.</Muted>{result.meta.note && <Muted>{result.meta.note}</Muted>}</> : !busy && <Body>{reviews.length ? "Your review summary will load automatically when the local service is available." : "Add reviews to your workspace to see an overview."}</Body>}
+      {!!error && <Muted>{error}</Muted>}
+      {Platform.OS !== "web" && !data.analysisEndpoint && <Button secondary label="Connect the review service" onPress={() => router.push("/offline")} />}
+      {!!reviews.length && <Button secondary label={busy ? "Loading insights…" : result ? "Refresh insights" : "Try loading insights"} disabled={busy} onPress={() => { void refresh().catch(() => setError("Could not update saved insights. Please try again.")); }} />}
+      {demo && <Muted>Analysis of synthetic demo reviews; not live customer feedback.</Muted>}
+      <Muted>An AI-written paragraph and business score can be added later. The rating below comes directly from review stars.</Muted>
+    </Card>
+    <View style={styles.stats}>{[{ label: "Reviews", value: String(reviews.length), bg: colors.sky }, { label: "Average rating", value: average === null ? "—" : `${average.toFixed(1)} / 5`, bg: colors.peach }, { label: "Analysed", value: result ? String(result.meta.analysed) : "—", bg: colors.mint }].map(stat => <View key={stat.label} style={[styles.stat, { backgroundColor: stat.bg }]}><Text style={styles.value}>{stat.value}</Text><Muted>{stat.label}</Muted></View>)}</View>
+    {result && <>
+      <Card><Heading>What’s working</Heading>{result.qualitative.strengths.length ? result.qualitative.strengths.slice(0, 3).map(renderFinding) : <Body>No clear strengths detected yet. This is not a negative rating.</Body>}</Card>
+      <Card><Heading>What needs attention</Heading>{result.qualitative.problems.length ? result.qualitative.problems.slice(0, 3).map(renderFinding) : <Body>No concerns detected among the analysed reviews. Check the original feedback too.</Body>}</Card>
+      {!!result.attention.unread_review_ids.length && <Card><Heading>Needs a closer look</Heading><Body>{result.attention.note ?? "These reviews were uncertain or in an unsupported language and are excluded from findings."}</Body>{result.attention.unread_review_ids.slice(0, 3).map(id => <Button key={id} secondary label={`Read ${reviews.find(r => r.id === id)?.guest ?? "review"}`} onPress={() => router.push(`/reviews/${id}`)} />)}</Card>}
+      <Muted>Saved {new Date(saved!.savedAt).toLocaleString()} · Model {result.meta.model_version}. Language support is provisional; verify the evidence before relying on a finding.</Muted>
+    </>}
+    <Button label="View all reviews" onPress={() => router.navigate("/reviews")} />
+  </Page>;
 }
-const s=StyleSheet.create({
- heroBody:{color:"#C9D8E9",fontSize:15,lineHeight:23,maxWidth:560},heroFooter:{flexDirection:"row",alignItems:"center",gap:8,marginTop:8},liveDot:{width:7,height:7,borderRadius:4,backgroundColor:"#87DDC0"},heroCaption:{color:"#B6CADF",fontSize:12},
- stats:{flexDirection:"row",backgroundColor:"white",borderRadius:18,borderWidth:1,borderColor:colors.line,paddingVertical:18},stat:{flex:1,alignItems:"center",gap:8},statNumber:{fontSize:28,fontWeight:"700",letterSpacing:-1,color:colors.ink},statLabel:{fontSize:11,color:colors.muted,textAlign:"center"},
- segment:{flexDirection:"row",padding:4,borderRadius:13,backgroundColor:"#E6EBF1",gap:4},segmentItem:{flex:1,paddingVertical:12,paddingHorizontal:4,borderRadius:10,alignItems:"center",justifyContent:"center",minHeight:48},segmentActive:{backgroundColor:"white"},segmentText:{fontSize:12,fontWeight:"700",color:colors.muted,textAlign:"center"},
- sectionHead:{flexDirection:"row",alignItems:"center",gap:12,justifyContent:"space-between"},smallLabel:{fontSize:10,fontWeight:"700",letterSpacing:1,color:colors.muted},
- grid:{flexDirection:"row",flexWrap:"wrap",gap:12},category:{flexGrow:1,flexBasis:"45%",padding:16,borderRadius:16,borderWidth:1,borderColor:colors.line,backgroundColor:"white",gap:12,minHeight:145},selectedCategory:{borderColor:colors.accent,backgroundColor:"#F0F4FF"},categoryTop:{flexDirection:"row",alignItems:"center",justifyContent:"space-between"},icon:{width:40,height:40,borderRadius:12,backgroundColor:colors.lavender,alignItems:"center",justifyContent:"center"},categoryCount:{fontSize:23,fontWeight:"700",color:colors.ink},categoryTitle:{fontSize:15,fontWeight:"700",color:colors.ink},categoryCaption:{fontSize:12,color:colors.muted},ideaFooter:{flexDirection:"row",justifyContent:"space-between",alignItems:"center",gap:8,paddingTop:12,borderTopWidth:1,borderTopColor:colors.line},effort:{fontSize:12,fontWeight:"600",color:colors.accent},source:{flexDirection:"row",gap:10,paddingVertical:8,alignItems:"flex-start"},
+const styles = StyleSheet.create({
+  heading: { flexDirection: "row", alignItems: "center", gap: 14 },
+  icon: { width: 48, height: 48, borderRadius: 16, backgroundColor: colors.lavender, alignItems: "center", justifyContent: "center" },
+  stats: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
+  stat: { flex: 1, minWidth: 90, padding: 16, borderRadius: 18, gap: 10 },
+  value: { color: colors.ink, fontSize: 25, fontWeight: "700" },
+  finding: { gap: 10, borderTopWidth: 1, borderColor: colors.line, paddingTop: 16 },
+  findingTitle: { fontSize: 17, fontWeight: "700", color: colors.ink },
+  quote: { padding: 14, borderRadius: 14, backgroundColor: colors.bg, gap: 10 },
 });

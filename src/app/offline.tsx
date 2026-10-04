@@ -21,6 +21,9 @@ export default function Offline() {
 }
 function OfflineSettings() {
   const { data, update, translationToken, setTranslationToken } = useStore();
+  const [analysisAddress, setAnalysisAddress] = useState(data?.analysisEndpoint ?? "http://127.0.0.1:8080");
+  const [analysisStatus, setAnalysisStatus] = useState("");
+  const [analysisChecking, setAnalysisChecking] = useState(false);
   const [endpoint, setEndpoint] = useState(data?.translationEndpoint ?? "");
   const [token, setToken] = useState(translationToken);
   const [connectionStatus, setConnectionStatus] = useState("");
@@ -35,6 +38,20 @@ function OfflineSettings() {
       setConnectionStatus("Connected to NLLB. Translation runs on the laptop.");
     } catch (e) { setConnectionStatus(e instanceof Error ? e.message : "Cannot connect. Check your Wi-Fi and laptop service."); }
     finally { setChecking(false); }
+  };
+  const connectAnalysis = async () => {
+    setAnalysisChecking(true);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    try {
+      const address = normalizeEndpoint(analysisAddress);
+      const response = await fetch(`${address}/v1/health`, { signal: controller.signal });
+      const health = await response.json();
+      if (!response.ok || health.model_ready !== true) throw new Error("Review model is not ready.");
+      await update(d => ({ ...d, analysisEndpoint: address }));
+      setAnalysisStatus("Review service connected. Open Insights to load the findings.");
+    } catch { setAnalysisStatus("Cannot reach the review service. Check the address and start the Java backend."); }
+    finally { clearTimeout(timeout); setAnalysisChecking(false); }
   };
   const network = useNetworkState();
   return (
@@ -65,6 +82,14 @@ function OfflineSettings() {
         </Muted>
       </Card>
       <Card>
+        <Heading>Review insights connection</Heading>
+        <Field label="Review service address" value={analysisAddress} onChange={setAnalysisAddress} />
+        <Muted>On this laptop use http://127.0.0.1:8080. On a phone, use the laptop’s private Wi-Fi address after enabling LAN binding. Local services still work without internet.</Muted>
+        <Button label={analysisChecking ? "Connecting…" : "Test and save review service"} disabled={analysisChecking} onPress={() => void connectAnalysis()} />
+        {!!analysisStatus && <Notice text={analysisStatus} />}
+        <Muted>{data?.insightsCache ? "A review insight result is saved on this device." : "No review insights saved yet."}</Muted>
+      </Card>
+      <Card>
         <Heading>Connect mobile translation</Heading>
         <Badge label={data?.translationEndpoint ? "Laptop connection saved" : "Setup needed"} />
         <Body>Connect your phone to the same Wi-Fi as the laptop running NLLB.</Body>
@@ -86,8 +111,8 @@ function OfflineSettings() {
         <Heading>Your AI tools</Heading>
         <Badge label="Translation · laptop connection" />
         <Body>Custom NLLB translation runs on your laptop. After the model is downloaded, it can work without internet while your phone remains connected to the same local Wi-Fi.</Body>
-        <Badge label="Review assistant · example mode" />
-        <Body>Suggested replies are authored examples. Insights use local rules and curated experiments. Your teammate’s model is not connected yet.</Body>
+        <Badge label="Review insights · local classifier" />
+        <Body>Insights loads measured aspect findings from the local Java backend and saves them on this device. Findings use fixed evidence-linked wording. Write review responses yourself and use NLLB for translation.</Body>
         <Muted>No model runs on this phone yet. Fully disconnected phone AI needs a compact model and a native inference runtime.</Muted>
       </Card>
       <Card>

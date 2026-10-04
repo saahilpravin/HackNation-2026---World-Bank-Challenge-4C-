@@ -61,3 +61,9 @@ ml/data/yelp/
 
 # Local build dependencies
 .maven-cache/
+
+# Also ignore local worktree dependency symlinks
+/node_modules
+/.ai-cache
+/.maven-cache
+/.venv-ai

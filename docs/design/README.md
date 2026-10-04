@@ -1,5 +1,7 @@
 # Lauda: architecture and implementation design
 
+> Historical audit of the snapshots below. For the subsequently merged MVP, use [the current integration guide](../MVP-INTEGRATION.md).
+
 **Reviewed 3 October 2026.** This is a source-based design review, not a claim that all proposed features are implemented.
 
 The repository currently has two different application snapshots:

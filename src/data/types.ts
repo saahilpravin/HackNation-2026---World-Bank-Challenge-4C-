@@ -1,3 +1,4 @@
+import type { InsightsCache } from "../ai/insights-api.ts";
 export type Profile = {
   ownerName?: string;
   currency?: string;
@@ -49,7 +50,7 @@ export type ReviewReply = {
   latencyMs?: number;
   approvedAt: string;
 };
-export type ReviewDraft = { reviewId: string; draft: string; writingLanguage: string; customerLanguage: string; savedAt: string };
+export type ReviewDraft = { reviewId: string; draft: string; writingLanguage: string; customerLanguage: string; savedAt: string; translatedText?: string; source?: ReviewReply["source"]; modelVersion?: string | null; latencyMs?: number };
 export type Review = {
   id: string;
   guest: string;
@@ -67,6 +68,8 @@ export type Review = {
 };
 export type ReviewTranslation = { reviewId: string; sourceText: string; from: string; to: string; text: string; modelVersion: string; latencyMs: number };
 export type Data = {
+  insightsCache?: InsightsCache;
+  analysisEndpoint?: string;
   reviewTranslations?: ReviewTranslation[];
   translationEndpoint?: string;
   demoReviewVersion?: number;

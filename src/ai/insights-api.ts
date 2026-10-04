@@ -1,0 +1,75 @@
+import type { Review } from "../data/types.ts";
+import { normalizeEndpoint } from "./laptop-translation.ts";
+import languages from "../data/nllb-languages.json" with { type: "json" };
+
+export type Finding = { aspect: string; label: string; count: number; total: number; share: number; priority: string | null; priority_label: string | null; summary: string; action: string | null; quotes: { review_id: string; language: string | null; rating: number | null; text: string }[]; review_ids: string[] };
+export type InsightsResult = {
+  meta: { total: number; analysed: number; unread: number; owner_language: string; model_version: string; note: string | null };
+  quantitative: { average_rating: number | null; rating_distribution: Record<string, number>; sentiment: Record<string, number>; languages: Record<string, number>; aspects: { aspect: string; label: string; positive: number; negative: number; share_negative: number }[]; trend: { month: string; count: number; average_rating: number | null; negative: number }[] };
+  qualitative: { problems: Finding[]; strengths: Finding[] };
+  attention: { unread_review_ids: string[]; note: string | null };
+};
+export type InsightsCache = { key: string; savedAt: string; result: InsightsResult };
+const aspectNames = new Set(["guide", "price_value", "communication", "facilities", "access_transport", "food", "other"]);
+export function languageCode(language = "English"): string {
+  // Preserve unknown/unsupported codes rather than claiming their text is English.
+  const code = languages.find(item => item.name === language)?.code;
+  const known: Record<string, string> = { eng_Latn: "en", swh_Latn: "sw", fra_Latn: "fr", spa_Latn: "es", deu_Latn: "de", ita_Latn: "it", por_Latn: "pt", arb_Arab: "ar", zho_Hans: "zh", zho_Hant: "zh", jpn_Jpan: "ja" };
+  return code ? known[code] ?? code : language;
+}
+export function insightsKey(reviews: Review[], ownerLanguage: string, endpoint: string): string {
+  return JSON.stringify(["v1-insights", normalizeEndpoint(endpoint), languageCode(ownerLanguage), [...reviews].sort((a, b) => a.id.localeCompare(b.id)).map(r => [r.id, r.text, languageCode(r.language), r.rating, r.date ?? null])]);
+}
+export function insightsPayload(reviews: Review[], ownerLanguage: string) {
+  if (!reviews.length || reviews.length > 500 || new Set(reviews.map(r => r.id)).size !== reviews.length) throw new Error("Choose 1–500 reviews with unique IDs.");
+  return { owner_language: languageCode(ownerLanguage), reviews: reviews.map((review, index) => ({ id: index + 1, text: review.text, language: languageCode(review.language), rating: review.rating, date: review.date ?? null })) };
+}
+function requireValue(ok: unknown): asserts ok { if (!ok) throw new Error("The insight service returned an incompatible response. Your saved findings have not changed."); }
+function object(value: unknown): Record<string, unknown> { requireValue(value !== null && typeof value === "object" && !Array.isArray(value)); return value as Record<string, unknown>; }
+function count(value: unknown, max: number): number { requireValue(typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= max); return value; }
+function text(value: unknown): string { requireValue(typeof value === "string" && value.length <= 12000); return value; }
+function optionalText(value: unknown): string | null { return value === null ? null : text(value); }
+function array(value: unknown, max: number): unknown[] { requireValue(Array.isArray(value) && value.length <= max); return value; }
+function share(value: unknown): number { requireValue(typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 1); return value; }
+function rating(value: unknown): number | null { if (value === null) return null; requireValue(typeof value === "number" && Number.isFinite(value) && value >= 1 && value <= 5); return value; }
+export function decodeInsights(value: unknown, reviews: Review[]): InsightsResult {
+  const root = object(value), m = object(root.meta), q = object(root.quantitative), qual = object(root.qualitative), att = object(root.attention);
+  const total = count(m.total, reviews.length); requireValue(total === reviews.length);
+  const analysed = count(m.analysed, total), unread = count(m.unread, total); requireValue(analysed + unread === total);
+  const id = (n: unknown) => { requireValue(typeof n === "number" && Number.isInteger(n) && n >= 1 && n <= reviews.length); return reviews[n - 1].id; };
+  const ids = (v: unknown) => { const out = array(v, total).map(id); requireValue(new Set(out).size === out.length); return out; };
+  const unreadIds = ids(att.unread_review_ids); requireValue(unreadIds.length === unread);
+  const finding = (v: unknown): Finding => {
+    const f = object(v), aspect = text(f.aspect); requireValue(aspectNames.has(aspect));
+    const reviewIds = ids(f.review_ids); requireValue(reviewIds.every(i => !unreadIds.includes(i)));
+    const n = count(f.count, analysed); requireValue(n === reviewIds.length && count(f.total, total) === analysed);
+    const quotes = array(f.quotes, 3).map(v => { const quote = object(v), reviewId = id(quote.review_id); requireValue(reviewIds.includes(reviewId)); return { review_id: reviewId, language: optionalText(quote.language), rating: rating(quote.rating), text: text(quote.text) }; });
+    return { aspect, label: text(f.label), count: n, total: analysed, share: share(f.share), priority: optionalText(f.priority), priority_label: optionalText(f.priority_label), summary: text(f.summary), action: optionalText(f.action), quotes, review_ids: reviewIds };
+  };
+  const counts = (v: unknown) => Object.fromEntries(Object.entries(object(v)).map(([key, val]) => [key, count(val, total)]));
+  const distribution = counts(q.rating_distribution); requireValue(["1", "2", "3", "4", "5"].every(key => key in distribution));
+  return {
+    meta: { total, analysed, unread, owner_language: text(m.owner_language), model_version: text(m.model_version), note: optionalText(m.note) },
+    quantitative: { average_rating: rating(q.average_rating), rating_distribution: distribution, sentiment: counts(q.sentiment), languages: counts(q.languages),
+      aspects: array(q.aspects, 7).map(v => { const a = object(v), aspect = text(a.aspect); requireValue(aspectNames.has(aspect)); return { aspect, label: text(a.label), positive: count(a.positive, analysed), negative: count(a.negative, analysed), share_negative: share(a.share_negative) }; }),
+      trend: array(q.trend, total).map(v => { const t = object(v); return { month: text(t.month), count: count(t.count, total), average_rating: rating(t.average_rating), negative: count(t.negative, total) }; }) },
+    qualitative: { problems: array(qual.problems, 5).map(finding), strengths: array(qual.strengths, 3).map(finding) },
+    attention: { unread_review_ids: unreadIds, note: optionalText(att.note) },
+  };
+}
+export async function fetchInsights(reviews: Review[], ownerLanguage: string, endpoint = "http://127.0.0.1:8080", signal?: AbortSignal): Promise<InsightsResult> {
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  signal?.addEventListener("abort", abort, { once: true });
+  if (signal?.aborted) controller.abort();
+  const timeout = setTimeout(abort, 180000);
+  try {
+    const response = await fetch(`${normalizeEndpoint(endpoint)}/v1/insights`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(insightsPayload(reviews, ownerLanguage)), signal: controller.signal });
+    const body = await response.json();
+    if (!response.ok) throw new Error(body?.error?.message ?? "Local review analysis is unavailable.");
+    return decodeInsights(body, reviews);
+  } catch (error) {
+    if (error instanceof TypeError || (error instanceof Error && error.name === "AbortError")) throw new Error("Cannot reach the review service. Start the Java backend or check its address in Offline & AI. Saved insights are still available.");
+    throw error;
+  } finally { clearTimeout(timeout); signal?.removeEventListener("abort", abort); }
+}

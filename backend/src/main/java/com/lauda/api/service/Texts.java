@@ -20,7 +20,8 @@ public class Texts {
     void load() throws Exception {
         File f = Path.of(modelDir).resolve("texts.json").toFile();
         if (f.exists()) root = new ObjectMapper().readTree(f);
-        else System.err.println("WARNING: texts.json not found in " + f.getParent());
+        else throw new IllegalStateException("Required texts.json not found in " + f.getParent());
+        if (!hasInsights("en") || !canReply("en")) throw new IllegalStateException("texts.json needs English insight and reply fallback templates");
     }
 
     /** Exact lookup in one language; null if missing. */

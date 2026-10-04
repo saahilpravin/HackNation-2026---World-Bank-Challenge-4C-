@@ -85,7 +85,7 @@ public class InsightService {
         boolean neg = sentiment.equals("negative");
         return groups.entrySet().stream()
             .filter(e -> e.getKey().startsWith(sentiment + "|"))
-            .sorted((x, y) -> y.getValue().size() - x.getValue().size())
+            .sorted(Comparator.<Map.Entry<String, List<Ev>>>comparingInt(e -> e.getValue().size()).reversed().thenComparing(Map.Entry::getKey))
             .limit(limit)
             .map(e -> {
                 String aspect = e.getKey().split("\\|")[1];
@@ -93,7 +93,7 @@ public class InsightService {
                 evs.sort(Comparator.comparingDouble((Ev v) -> v.h().score()).reversed());
                 int n = evs.size();
                 double share = analysed == 0 ? 0 : Math.round(n * 100.0 / analysed) / 100.0;
-                String priority = !neg ? null : (n >= 3 || share >= 0.15) ? "high" : n == 2 ? "medium" : "low";
+                String priority = !neg ? null : n >= 3 ? "high" : n == 2 ? "medium" : "low";
                 String name = aspectName(lang, aspect);
                 String summary = texts.getOrEn(lang, "insights", neg ? "problem" : "strength")
                         .replace("{count}", String.valueOf(n)).replace("{total}", String.valueOf(analysed))
