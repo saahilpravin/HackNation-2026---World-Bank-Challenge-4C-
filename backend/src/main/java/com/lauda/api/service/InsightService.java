@@ -4,102 +4,115 @@ import com.lauda.api.dto.Dto;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class InsightService {
 
-    private record Ev(int reviewId, String language, Integer rating, String text, double score) {}
+    private record Ev(Dto.Analysis a, Dto.AspectHit h) {}
 
-    private final Phrasebook pb;
-    private final Translator translator;
+    private final ClassifierService classifier;
+    private final Texts texts;
 
-    public InsightService(Phrasebook pb, Translator translator) {
-        this.pb = pb;
-        this.translator = translator;
+    public InsightService(ClassifierService classifier, Texts texts) {
+        this.classifier = classifier;
+        this.texts = texts;
     }
 
-    public Dto.InsightsResponse build(Dto.InsightsRequest req) {
+    public Dto.InsightsResponse build(Dto.InsightsRequest req) throws Exception {
         String requested = req.ownerLanguage();
-        String lang = pb.resolve(requested);
+        String lang = texts.hasInsights(requested) ? requested : "en";
         String note = (requested != null && !requested.equals(lang))
-                ? "No phrasebook for '" + requested + "' yet; showing English." : null;
+                ? "No text for '" + requested + "' yet; showing English." : null;
 
-        List<Dto.AnalyzeResponse> all = req.reviews() == null ? List.of() : req.reviews();
-        List<Integer> unread = new ArrayList<>();
-        Map<String, List<Ev>> groups = new LinkedHashMap<>();        // sentiment|aspect|issue
-        Map<String, Set<Integer>> aspectIds = new HashMap<>();       // sentiment|aspect
-        int analysed = 0;
+        // 1. classify every review once
+        List<Dto.Analysis> all = new ArrayList<>();
+        for (Dto.ReviewIn r : req.reviews()) all.add(classifier.analyze(r));
+        List<Dto.Analysis> ok = all.stream().filter(a -> !a.needsReview()).toList();
+        List<Integer> unread = all.stream().filter(Dto.Analysis::needsReview)
+                .map(Dto.Analysis::reviewId).toList();
 
-        for (Dto.AnalyzeResponse r : all) {
-            // Guardrail: low-confidence or untested-language reviews are not counted; owner reads them.
-            if (r.needsReview()) { unread.add(r.reviewId()); continue; }
-            analysed++;
-            for (Dto.AspectHit a : r.aspects()) {
-                groups.computeIfAbsent(a.sentiment() + "|" + a.aspect() + "|" + a.issue(),
-                        k -> new ArrayList<>())
-                      .add(new Ev(r.reviewId(), r.language(), r.rating(), a.evidence(), a.score()));
-                aspectIds.computeIfAbsent(a.sentiment() + "|" + a.aspect(), k -> new TreeSet<>())
-                         .add(r.reviewId());
-            }
+        // 2. quantitative (pure counting)
+        Map<String, Integer> dist = new LinkedHashMap<>();
+        for (int s = 1; s <= 5; s++) dist.put(String.valueOf(s), 0);
+        Map<String, Integer> sentiment = new TreeMap<>();
+        Map<String, Integer> langs = new TreeMap<>();
+        for (Dto.Analysis a : all) {
+            if (a.rating() != null && a.rating() >= 1 && a.rating() <= 5)
+                dist.merge(String.valueOf(a.rating()), 1, Integer::sum);
+            sentiment.merge(a.overallSentiment(), 1, Integer::sum);
+            langs.merge(a.language() == null ? "unknown" : a.language(), 1, Integer::sum);
         }
+        Double avg = round(all.stream().filter(a -> a.rating() != null)
+                .mapToInt(Dto.Analysis::rating).average());
 
-        List<Dto.Finding> problems = findings(groups, "negative", analysed, lang, 5);
-        List<Dto.Finding> strengths = findings(groups, "positive", analysed, lang, 3);
+        Map<String, int[]> perAspect = new TreeMap<>();            // [positive, negative]
+        Map<String, List<Ev>> groups = new HashMap<>();            // "sentiment|aspect"
+        for (Dto.Analysis a : ok)
+            for (Dto.AspectHit h : a.aspects()) {
+                perAspect.computeIfAbsent(h.aspect(), k -> new int[2])[h.sentiment().equals("positive") ? 0 : 1]++;
+                groups.computeIfAbsent(h.sentiment() + "|" + h.aspect(), k -> new ArrayList<>()).add(new Ev(a, h));
+            }
+        int analysed = ok.size();
+        List<Dto.AspectStat> aspects = perAspect.entrySet().stream().map(e -> new Dto.AspectStat(
+                e.getKey(), aspectName(lang, e.getKey()), e.getValue()[0], e.getValue()[1],
+                analysed == 0 ? 0 : Math.round(e.getValue()[1] * 100.0 / analysed) / 100.0)).toList();
 
-        Set<String> aspects = new TreeSet<>();
-        aspectIds.keySet().forEach(k -> aspects.add(k.split("\\|")[1]));
-        List<Dto.AspectCount> counts = aspects.stream().map(a -> new Dto.AspectCount(a,
-                aspectIds.getOrDefault("positive|" + a, Set.of()).size(),
-                aspectIds.getOrDefault("negative|" + a, Set.of()).size())).toList();
+        Map<String, List<Dto.Analysis>> byMonth = new TreeMap<>();
+        for (Dto.Analysis a : all)
+            if (a.date() != null && a.date().length() >= 7)
+                byMonth.computeIfAbsent(a.date().substring(0, 7), k -> new ArrayList<>()).add(a);
+        List<Dto.TrendPoint> trend = byMonth.entrySet().stream().map(e -> new Dto.TrendPoint(
+                e.getKey(), e.getValue().size(),
+                round(e.getValue().stream().filter(a -> a.rating() != null)
+                        .mapToInt(Dto.Analysis::rating).average()),
+                (int) e.getValue().stream().filter(a -> a.overallSentiment().equals("negative")).count())).toList();
 
-        return new Dto.InsightsResponse(lang, all.size(), analysed, problems, strengths, counts,
-                unread, unread.isEmpty() ? null : pb.template(lang, "unread"), note);
+        // 3. qualitative (fixed text + original quotes)
+        Dto.Qualitative qual = new Dto.Qualitative(
+                findings(groups, "negative", analysed, lang, 5),
+                findings(groups, "positive", analysed, lang, 3));
+
+        String unreadNote = unread.isEmpty() ? null : texts.getOrEn(lang, "insights", "unread");
+        return new Dto.InsightsResponse(
+                new Dto.Meta(all.size(), analysed, unread.size(), lang,
+                        all.isEmpty() ? null : all.get(0).modelVersion(), note),
+                new Dto.Quantitative(avg, dist, sentiment, langs, aspects, trend),
+                qual, new Dto.Attention(unread, unreadNote));
     }
 
     private List<Dto.Finding> findings(Map<String, List<Ev>> groups, String sentiment,
                                        int analysed, String lang, int limit) {
-        String sign = sentiment.equals("positive") ? "+" : "-";
+        boolean neg = sentiment.equals("negative");
         return groups.entrySet().stream()
             .filter(e -> e.getKey().startsWith(sentiment + "|"))
-            .sorted(Comparator
-                .comparingInt((Map.Entry<String, List<Ev>> e) -> e.getValue().size()).reversed()
-                .thenComparing(e -> -avg(e.getValue())))
+            .sorted((x, y) -> y.getValue().size() - x.getValue().size())
             .limit(limit)
             .map(e -> {
-                String[] p = e.getKey().split("\\|");
-                String aspect = p[1], issue = p[2], label = aspect + sign;
+                String aspect = e.getKey().split("\\|")[1];
                 List<Ev> evs = new ArrayList<>(e.getValue());
-                evs.sort(Comparator.comparingDouble(Ev::score).reversed());
-
+                evs.sort(Comparator.comparingDouble((Ev v) -> v.h().score()).reversed());
                 int n = evs.size();
-                double share = analysed == 0 ? 0 : n / (double) analysed;
-                String level = (n >= 3 || share >= 0.15) ? "pattern" : n == 2 ? "repeated" : "single";
-                String title = pb.title(lang, label, issue);
-                String text = pb.template(lang, "finding_" + sentiment)
-                        .replace("{count}", String.valueOf(n))
-                        .replace("{total}", String.valueOf(analysed))
-                        .replace("{title}", title);
-
-                List<Dto.Quote> quotes = evs.stream().limit(3).map(ev -> new Dto.Quote(
-                        ev.reviewId(), ev.language(), ev.text(), translate(ev, lang), ev.rating()))
-                        .collect(Collectors.toList());
-
-                return new Dto.Finding(aspect, issue, title, n, analysed,
-                        Math.round(share * 100) / 100.0, level, pb.levelLabel(lang, level), text,
-                        sentiment.equals("negative") ? pb.action(lang, label, issue) : null,
-                        quotes,
-                        evs.stream().map(Ev::reviewId).sorted().toList());
+                double share = analysed == 0 ? 0 : Math.round(n * 100.0 / analysed) / 100.0;
+                String priority = !neg ? null : (n >= 3 || share >= 0.15) ? "high" : n == 2 ? "medium" : "low";
+                String name = aspectName(lang, aspect);
+                String summary = texts.getOrEn(lang, "insights", neg ? "problem" : "strength")
+                        .replace("{count}", String.valueOf(n)).replace("{total}", String.valueOf(analysed))
+                        .replace("{aspect}", name);
+                List<Dto.Quote> quotes = evs.stream().limit(3).map(v -> new Dto.Quote(
+                        v.a().reviewId(), v.a().language(), v.a().rating(), v.h().evidence())).toList();
+                return new Dto.Finding(aspect, name, n, analysed, share, priority,
+                        priority == null ? null : texts.getOrEn(lang, "insights", "priority", priority),
+                        summary, neg ? texts.getOrEn(lang, "insights", "actions", aspect) : null,
+                        quotes, evs.stream().map(v -> v.a().reviewId()).sorted().toList());
             }).toList();
     }
 
-    private String translate(Ev ev, String toLang) {
-        if (ev.language() == null || ev.language().equals(toLang)) return ev.text();
-        try { return translator.translate(ev.text(), ev.language(), toLang); }
-        catch (Exception ex) { return null; }       // translation failure must never break the report
+    private String aspectName(String lang, String aspect) {
+        String n = texts.getOrEn(lang, "insights", "aspect_names", aspect);
+        return n != null ? n : aspect;
     }
 
-    private static double avg(List<Ev> l) {
-        return l.stream().mapToDouble(Ev::score).average().orElse(0);
+    private static Double round(OptionalDouble d) {
+        return d.isPresent() ? Math.round(d.getAsDouble() * 100.0) / 100.0 : null;
     }
 }

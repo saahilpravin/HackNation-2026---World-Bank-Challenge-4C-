@@ -156,7 +156,7 @@ public class ClassifierService {
 
     // ---------- 5. Decision logic: scores -> API response ----------
 
-    public Dto.AnalyzeResponse analyze(Dto.AnalyzeRequest r) throws OrtException {
+    public Dto.Analysis analyze(Dto.ReviewIn r) throws OrtException {
         if (labels == null) {
             throw new org.springframework.web.server.ResponseStatusException(
                     org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE, "model not loaded");
@@ -167,22 +167,17 @@ public class ClassifierService {
         if (t.codePointCount(0, t.length()) >= minChars) {
             double[] whole = scores(t);
             List<String> parts = sentences(t);
-            double[][] partScores = new double[parts.size()][];
-            for (int k = 0; k < parts.size(); k++) {
-                partScores[k] = parts.size() == 1 ? whole : scores(parts.get(k));
-            }
+            double[][] ps = new double[parts.size()][];
+            for (int k = 0; k < parts.size(); k++) ps[k] = parts.size() == 1 ? whole : scores(parts.get(k));
+
             for (int j = 0; j < labels.length; j++) {
                 if (whole[j] < thr[j]) continue;
                 int best = 0;
-                for (int k = 1; k < parts.size(); k++) {
-                    if (partScores[k][j] > partScores[best][j]) best = k;
-                }
+                for (int k = 1; k < parts.size(); k++) if (ps[k][j] > ps[best][j]) best = k;
                 String l = labels[j];
-                hits.add(new Dto.AspectHit(
-                        l.substring(0, l.length() - 1),
+                hits.add(new Dto.AspectHit(l.substring(0, l.length() - 1),
                         l.endsWith("+") ? "positive" : "negative",
-                        Math.round(whole[j] * 100) / 100.0,
-                        parts.get(best), "unspecified"));
+                        Math.round(whole[j] * 100) / 100.0, parts.get(best)));
             }
         }
 
@@ -194,7 +189,7 @@ public class ClassifierService {
         else overall = "unknown";
 
         boolean untested = r.language() != null && !testedLangs.contains(r.language());
-        return new Dto.AnalyzeResponse(r.id(), r.language(), r.rating(), hits, overall,
+        return new Dto.Analysis(r.id(), r.language(), r.rating(), r.date(), hits, overall,
                 hits.isEmpty() || untested, version);
     }
 
