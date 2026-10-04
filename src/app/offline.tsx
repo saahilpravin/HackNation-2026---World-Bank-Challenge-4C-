@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import { useState } from "react";
 import { checkTranslationConnection, normalizeEndpoint } from "../ai/laptop-translation";
 import { Platform } from "react-native";
@@ -63,6 +64,14 @@ function OfflineSettings() {
             ? "Browser preview storage: localStorage."
             : "Native storage: SQLite with WAL journal."}
         </Muted>
+      </Card>
+      <Card>
+        <Heading>Review intelligence</Heading>
+        <Badge label={data?.reviewAnalysis?"Analysis saved on this device":"Local laptop setup"}/>
+        <Body>MiniLM classifies review topics and sentiment. A separate small Qwen language model suggests ideas from the measured evidence. Both run on your laptop.</Body>
+        <Muted>{data?.reviewAnalysis?`Last run: ${data.reviewAnalysis.savedAt.slice(0,16).replace("T"," ")} · ${data.reviewAnalysis.result.reviews.length} reviews. Saved findings can be read offline.`:"Start the local review backend and Ollama, then open Insights in the laptop browser."}</Muted>
+        <Muted>The laptop browser can perform fresh analysis with Wi-Fi off. A physical phone retains saved records; fresh on-phone inference is not installed.</Muted>
+        <Button label="Open Insights" secondary onPress={()=>router.navigate("/insights")}/>
       </Card>
       <Card>
         <Heading>Connect mobile translation</Heading>

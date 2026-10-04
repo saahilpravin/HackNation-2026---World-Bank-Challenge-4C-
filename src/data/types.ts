@@ -67,6 +67,7 @@ export type Review = {
 };
 export type ReviewTranslation = { reviewId: string; sourceText: string; from: string; to: string; text: string; modelVersion: string; latencyMs: number };
 export type Data = {
+  reviewAnalysis?: import("../ai/review-analysis").AnalysisCache;
   reviewTranslations?: ReviewTranslation[];
   translationEndpoint?: string;
   demoReviewVersion?: number;

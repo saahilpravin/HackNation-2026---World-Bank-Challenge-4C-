@@ -1,0 +1,12 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { fingerprint, validateAnalysis, analyzeReviews } from "../src/ai/review-analysis.ts";
+import type { Review } from "../src/data/types.ts";
+const review:Review={id:"import-x",guest:"Visitor",text:"A great friendly guide",language:"English",rating:5,theme:"guide",demo:false};
+const valid={model:"MiniLM",version:"v1",source:"local-laptop-model",latencyMs:10,testedLanguages:["en","sw"],reviews:[{id:review.id,aspects:[{aspect:"guide",sentiment:"positive",score:.8}],sentiment:"positive",needsReview:false}],praised:[{aspect:"guide",sentiment:"positive",text:"One review",reviewIds:[review.id]}],criticized:[],suggestions:[]};
+test("measured review IDs and evidence survive imports",()=>assert.equal(validateAnalysis(valid,[review]).reviews[0].id,review.id));
+test("reject mismatched evidence and invented confidence",()=>{assert.throws(()=>validateAnalysis({...valid,praised:[{...valid.praised[0],reviewIds:["foreign"]}]},[review]));assert.throws(()=>validateAnalysis({...valid,reviews:[{...valid.reviews[0],aspects:[{aspect:"guide",sentiment:"positive",score:7}]}]},[review]));});
+test("cache invalidates after source text, language, rating or ID changes",()=>{for(const change of [{text:"Changed review"},{language:"Kiswahili"},{rating:2},{id:"other"}])assert.notEqual(fingerprint([review]),fingerprint([{...review,...change}]));});
+test("analysis stays on the laptop",async()=>assert.rejects(analyzeReviews([review],"https://example.com"),/local laptop/));
+test("generated suggestions cannot cite another workspace",()=>assert.throws(()=>validateAnalysis({...valid,llm:{model:"qwen3:0.6b",status:"generated",latencyMs:1,advice:[{aspect:"guide",title:"Suggestion",text:"Try a short briefing",reviewIds:["foreign-review"]}]}},[review])));
+test("local LLM failures preserve measured classifier results",()=>assert.equal(validateAnalysis({...valid,llm:{model:"qwen3:0.6b",status:"unavailable",latencyMs:1,advice:[]}},[review]).reviews.length,1));

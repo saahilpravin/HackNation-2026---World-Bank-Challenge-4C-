@@ -1,3 +1,5 @@
+import { aspects, fingerprint } from "../../ai/review-analysis";
+import { reviewCategories } from "../../ai/review-categories";
 import { findReviewTranslation, saveReviewTranslation } from "../../ai/translation-cache";
 import { suggestReviewResponse } from "../../ai/review-assistant";
 import type { AssistantOutput } from "../../ai/assistant-contract";
@@ -20,6 +22,7 @@ function ReplyForm() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, update, translationToken } = useStore();
   const review = data?.reviews.find(r => r.id === id);
+  const measured = data?.reviewAnalysis?.fingerprint === fingerprint((data?.reviews??[]).filter(r=>r.demo===review?.demo)) ? data.reviewAnalysis.result.reviews.find(r=>r.id===id) : undefined;
   const saved = data?.reviewReplies?.find(r => r.reviewId === id);
   const savedDraft = data?.reviewDrafts?.find(r => r.reviewId === id);
   const validLanguage = (l?: string): ReplyLanguage => replyLanguages.find(v => v === l) ?? "English";
@@ -106,6 +109,7 @@ function ReplyForm() {
       {cachedReading && <Muted>Saved NLLB translation · available offline · check meaning before use.</Muted>}
       {!!readingStatus && <Notice text={readingStatus} />}
     </Card>
+    {measured&&<Card><Badge label="Measured local classification"/><Heading>AI review observations</Heading>{measured.aspects.map(hit=><Body key={`${hit.aspect}-${hit.sentiment}`}>{reviewCategories.find(c=>c.id===aspects[hit.aspect])?.title??hit.aspect} · {hit.sentiment} · model score {hit.score.toFixed(2)}</Body>)}<Muted>{measured.needsReview?"Human verification needed: this language is unverified, labels conflict, or no category was confidently detected.":"Check the original review before relying on these labels."} Model scores are not measured accuracy.</Muted></Card>}
     {(saved || review.exampleResponse) && <Card><Badge label={saved ? "Approved on this device" : "Example · already answered"} /><Heading>Previous response</Heading><Body>{saved?.translatedText ?? review.exampleResponse?.text}</Body><Muted>{saved?.approvedAt.slice(0,10) ?? review.exampleResponse?.respondedAt} · {saved?.customerLanguage ?? review.exampleResponse?.language}</Muted></Card>}
     <Card>
       <Heading>Make it your own</Heading>
