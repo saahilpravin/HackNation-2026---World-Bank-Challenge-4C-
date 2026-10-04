@@ -10,7 +10,7 @@ import threading
 import time
 from run import MODEL, LANGUAGES, validate, sentence_parts
 
-ORIGINS = {f"http://{host}:{port}" for host in ("localhost", "127.0.0.1") for port in (8082, 8084)}
+ORIGINS = {f"http://{host}:{port}" for host in ("localhost", "127.0.0.1") for port in (8082, 8084, 8087)}
 LOCK = threading.Lock()
 
 
