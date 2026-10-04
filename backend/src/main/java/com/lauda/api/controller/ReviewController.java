@@ -19,6 +19,10 @@ public class ReviewController {
 
     @org.springframework.beans.factory.annotation.Autowired
     private com.lauda.api.service.InsightsLlmService llm;
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.lauda.api.service.ReviewAnalysisService analysis;
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.lauda.api.service.InsightsJobService jobs;
     private final ClassifierService classifier;
     private final ReplyService replies;
     private final InsightService insights;
@@ -42,7 +46,7 @@ public class ReviewController {
         require(req != null, "request is required");
         checkBatch(req.reviews());
         List<Dto.Analysis> out = new ArrayList<>();
-        for (Dto.ReviewIn r : req.reviews()) out.add(classifier.analyze(r));
+        for (Dto.ReviewIn r : req.reviews()) out.add(analysis.analyze(r));
         return out;
     }
 
@@ -53,6 +57,12 @@ public class ReviewController {
         return insights.withNarrative(req);
     }
 
+    @PostMapping("/insights/jobs")
+    public Dto.InsightJob startInsights(@RequestBody Dto.InsightsRequest req) throws Exception {
+        require(req!=null,"request is required"); checkBatch(req.reviews()); return jobs.start(req);
+    }
+    @GetMapping("/insights/jobs/{id}")
+    public Dto.InsightJob job(@PathVariable String id) { return jobs.get(id); }
     @GetMapping("/health")
     public java.util.Map<String, Object> health() {
         return java.util.Map.of("status", "ok", "model_ready", classifier.ready(), "llm", llm.capabilities());

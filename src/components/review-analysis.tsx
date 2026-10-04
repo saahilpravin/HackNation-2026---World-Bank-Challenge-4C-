@@ -31,7 +31,9 @@ export function ReviewAnalysis({ review, onUse }: { review: Review; onUse: (draf
   return <>
     <Card><Heading>Review at a glance</Heading>{busy && <ActivityIndicator color={colors.accent} />}
       {analysis && <><Badge label={`Overall sentiment · ${analysis.overall_sentiment}`} /><Muted>{analysis.sentiment_source === "aspect-model" ? "Based on detected aspects" : analysis.sentiment_source === "star-rating" ? "Based on review stars; no clear aspects detected" : "Not enough evidence"}</Muted>
-        {analysis.needs_review && <Muted>Needs human checking · uncertain or unsupported language. Excluded from dashboard findings.</Muted>}
+        {analysis.translation?.status === "translated" && <Muted>Analysed using a local NLLB English translation. Original review is preserved; translation errors can affect tags.</Muted>}
+        {analysis.translation?.status === "failed" && <Muted>{analysis.translation.error}</Muted>}
+        {analysis.needs_review && <Muted>Needs human checking · no reliable aspects or translation unavailable. Excluded from dashboard findings.</Muted>}
         <View style={styles.gauges}>{hits.map(hit => <View key={hit.aspect + hit.sentiment} style={styles.gauge} accessible accessibilityLabel={`${aspectLabels[hit.aspect]}, ${hit.sentiment}, model score ${Math.round(hit.score * 100)} out of 100`}>
           <Svg width={140} height={86} viewBox="0 0 140 86"><Path d="M 14 72 A 56 56 0 0 1 126 72" stroke={colors.line} strokeWidth={10} fill="none" strokeLinecap="round" /><Path d="M 14 72 A 56 56 0 0 1 126 72" stroke={analysis.needs_review ? colors.muted : hit.sentiment === "positive" ? colors.teal : colors.coral} strokeWidth={10} fill="none" strokeLinecap="round" strokeDasharray={`${Math.PI * 56 * hit.score} ${Math.PI * 56}`} /></Svg>
           <Text style={styles.score}>{Math.round(hit.score * 100)}</Text><Text style={styles.label}>{aspectLabels[hit.aspect]}</Text><Muted>{hit.sentiment} · Model score</Muted>

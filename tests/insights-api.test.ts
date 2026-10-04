@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { decodeInsights, fetchInsights, insightsKey, insightsPayload } from "../src/ai/insights-api.ts";
+import { decodeInsights, fetchInsights, insightsKey, insightsPayload, languageCode } from "../src/ai/insights-api.ts";
 import type { Review } from "../src/data/types.ts";
 const reviews: Review[] = [
   { id: "r15", guest: "A", text: "Excellent guide and clear explanations.", rating: 5, language: "English", date: "2026-10-03", theme: "guide", demo: true },
@@ -35,7 +35,7 @@ test("cache identity survives ordering but invalidates changed content, language
 test("client calls the actual versioned API and explains unavailable services", async () => {
   const original = globalThis.fetch;
   try {
-    globalThis.fetch = async (url, options) => { assert.equal(url, "http://127.0.0.1:8080/v1/insights"); assert.equal(JSON.parse(String(options?.body)).reviews[0].id, 1); return new Response(JSON.stringify(response())); };
+    globalThis.fetch = async (url, options) => { assert.equal(url, "http://127.0.0.1:8080/v1/insights/jobs"); assert.equal(JSON.parse(String(options?.body)).reviews[0].id, 1); return new Response(JSON.stringify({ id: "test-job", status: "completed", total: reviews.length, processed: reviews.length, result: response(), error: null })); };
     assert.equal((await fetchInsights(reviews, "English")).meta.total, 2);
     globalThis.fetch = async () => { throw new TypeError("offline"); };
     await assert.rejects(fetchInsights(reviews, "English"), /Saved insights are still available/);
@@ -46,4 +46,17 @@ test("LLM notes map evidence IDs and reject evidence from another finding", () =
   assert.equal(decodeInsights({ ...response(), narrative }, reviews).narrative?.aspect_notes[0].review_ids[0], "r15");
   assert.throws(() => decodeInsights({ ...response(), narrative: { ...narrative, aspect_notes: [{ ...narrative.aspect_notes[0], review_ids: [2] }] } }, reviews));
   assert.throws(() => decodeInsights({ ...response(), narrative: { ...narrative, status: "timeout" } }, reviews));
+});
+
+test("job client polls and reports progress before decoding the final result", async () => {
+  const original = globalThis.fetch; let calls = 0; const progress: number[] = [];
+  try {
+    globalThis.fetch = async (url) => { calls++; if(calls > 1) assert.equal(url,"http://127.0.0.1:8080/v1/insights/jobs/test-job"); return new Response(JSON.stringify({ id: "test-job", status: calls === 1 ? "running" : "completed", total: 2, processed: calls === 1 ? 1 : 2, result: calls === 1 ? null : response(), error: null })); };
+    assert.equal((await fetchInsights(reviews,"English",undefined,undefined,p => progress.push(p.processed))).meta.total,2);
+    assert.deepEqual(progress,[1,2]);
+  } finally { globalThis.fetch=original; }
+});
+test("unknown source language is preserved and traditional Chinese keeps its script", () => {
+  assert.equal(insightsPayload([{...reviews[0],language:undefined}],"English").reviews[0].language,"unknown");
+  assert.equal(languageCode("Chinese (Traditional)"), "zho_Hant");
 });

@@ -18,12 +18,18 @@ public class Dto {
             @JsonProperty("overall_sentiment") String overallSentiment,
             @JsonProperty("needs_review") boolean needsReview,
             @JsonProperty("model_version") String modelVersion,
-            @JsonProperty("sentiment_source") String sentimentSource) {
+            @JsonProperty("sentiment_source") String sentimentSource, Translation translation) {
+        public Analysis(int id, String language, Integer rating, String date, List<AspectHit> aspects, String sentiment, boolean needsReview, String modelVersion, String source) {
+            this(id, language, rating, date, aspects, sentiment, needsReview, modelVersion, source, null);
+        }
         public Analysis(int id, String language, Integer rating, String date, List<AspectHit> aspects, String sentiment, boolean needsReview, String modelVersion) {
             this(id, language, rating, date, aspects, sentiment, needsReview, modelVersion, aspects.isEmpty() ? (rating == null ? "unknown" : "star-rating") : "aspect-model");
         }
     }
 
+    public record Translation(String status, @JsonProperty("source_language") String sourceLanguage,
+            @JsonProperty("model_version") String modelVersion, @JsonProperty("original_text") String originalText,
+            @JsonProperty("translated_text") String translatedText, String error) {}
     public record BatchRequest(List<ReviewIn> reviews) {}
 
     // ---------- reply drafts ----------
@@ -48,7 +54,10 @@ public class Dto {
     }
 
     public record Quote(@JsonProperty("review_id") int reviewId, String language,
-                        Integer rating, String text) {}
+                        Integer rating, String text, @JsonProperty("original_text") String originalText,
+            @JsonProperty("translation_model") String translationModel) {
+        public Quote(int id, String language, Integer rating, String text) { this(id, language, rating, text, null, null); }
+    }
 
     public record Finding(String aspect, String label, int count, int total, double share,
             String priority, @JsonProperty("priority_label") String priorityLabel,
@@ -74,7 +83,12 @@ public class Dto {
 
     public record Meta(int total, int analysed, int unread,
             @JsonProperty("owner_language") String ownerLanguage,
-            @JsonProperty("model_version") String modelVersion, String note) {}
+            @JsonProperty("model_version") String modelVersion, String note, int translated,
+            @JsonProperty("translation_failed") int translationFailed) {
+        public Meta(int total, int analysed, int unread, String ownerLanguage, String modelVersion, String note) {
+            this(total, analysed, unread, ownerLanguage, modelVersion, note, 0, 0);
+        }
+    }
 
     public record NarrativeNote(String aspect, String polarity, String text,
             @JsonProperty("review_ids") List<Integer> reviewIds) {}
@@ -82,6 +96,7 @@ public class Dto {
             @JsonProperty("prompt_version") String promptVersion,
             @JsonProperty("latency_ms") long latencyMs, String summary,
             @JsonProperty("aspect_notes") List<NarrativeNote> aspectNotes, List<String> warnings) {}
+    public record InsightJob(String id, String status, int total, int processed, InsightsResponse result, String error) {}
     public record InsightsResponse(Meta meta, Quantitative quantitative,
                                    Qualitative qualitative, Attention attention, Narrative narrative) {
         public InsightsResponse(Meta meta, Quantitative quantitative, Qualitative qualitative, Attention attention) {

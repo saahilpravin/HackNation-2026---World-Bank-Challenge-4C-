@@ -11,15 +11,18 @@ import java.util.List;
 public class ReplyService {
     private final ClassifierService classifier;
     private final Texts texts;
+    private ReviewAnalysisService analysis;
 
     public ReplyService(ClassifierService classifier, Texts texts) {
         this.classifier = classifier;
         this.texts = texts;
     }
 
+    @org.springframework.beans.factory.annotation.Autowired
+    public ReplyService(ClassifierService classifier, Texts texts, ReviewAnalysisService analysis) { this(classifier,texts); this.analysis=analysis; }
     public Dto.ReplyResponse draft(Dto.ReplyRequest req) throws Exception {
         Dto.ReviewIn rv = req.review();
-        Dto.Analysis a = classifier.analyze(rv);
+        Dto.Analysis a = analysis == null ? classifier.analyze(rv) : analysis.analyze(rv);
         List<String> warnings = new ArrayList<>();
 
         String lang = texts.canReply(rv.language()) ? rv.language() : "en";

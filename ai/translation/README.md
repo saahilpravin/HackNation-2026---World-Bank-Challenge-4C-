@@ -42,7 +42,7 @@ The service prints a temporary pairing code for that bridge. Phone and laptop ne
 - `src/data/nllb-languages.json`: shipped NLLB language/script variants used by the searchable UI and server.
 - `src/ai/laptop-translation.ts`: frontend adapter.
 
-NLLB translation coverage and review-classifier coverage are separate. The classifier's `ml/common.py` and exported `ml/artifacts/head_v1.json` currently list only `en` and `sw`. Simply removing that guard does not prove reliable analysis. Translating reviews into English before classification requires a separate provenance-aware pipeline; this installer does not silently change classification or its counts.
+NLLB translation coverage and review-classifier coverage are separate. The classifier's `ml/common.py` and exported `ml/artifacts/head_v1.json` currently list only `en` and `sw`. Simply removing that guard does not prove reliable analysis. The backend now translates non-English reviews into English with local NLLB before classification, preserving source language and original text. Successful translations are cached on disk. Translation failures and reviews with no aspect above threshold are still excluded; translation support is not a claim of classifier accuracy.
 
 ## Quality and license
 

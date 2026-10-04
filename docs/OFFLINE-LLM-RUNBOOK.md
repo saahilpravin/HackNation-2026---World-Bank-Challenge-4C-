@@ -105,7 +105,7 @@ Failures return counted findings with `disabled`, `not-ready`, `timeout`, `inval
 
 ## Quality and remaining work
 
-This is a working integration, not a quality-certified model. Current classifier tags can be wrong. Many multilingual demo reviews are excluded; no claim of 200-language insight accuracy is made. NLLB's language selection is separate from classifier support. Qwen narration is English initially. Reply templates are English initially, with explicit fallback warnings and NLLB translation afterward.
+This is a working integration, not a quality-certified model. Current classifier tags can be wrong. Non-English reviews now pass through local NLLB before classification; untranslated failures and reviews with no aspect above threshold remain excluded. No claim of 200-language insight accuracy is made. NLLB's language selection is separate from classifier support. Qwen narration is English initially. Reply templates are English initially, with explicit fallback warnings and NLLB translation afterward.
 
 Before submission, evaluate held-out, manually labeled real reviews for aspect precision/recall, overall sentiment and evidence correctness. Improve `head_v1.json` through the teammate's ML workflow and keep unsupported/uncertain feedback excluded. Test summary faithfulness independently from classifier accuracy. Show synthetic/demo provenance and do not present sample feedback as real customer results.
 
@@ -121,3 +121,5 @@ The integration was checked with TypeScript/lint, frontend contracts, Java tests
 ## Verification record
 
 40 frontend tests and 8 Java tests passed. Type checking and lint passed with no project errors or warnings, and the web export succeeded. A final real local Qwen request produced a validated summary with exact quoted evidence and matching review IDs in 3.7 seconds of model request time on this laptop. This is an observed sample, not a performance guarantee. The browser walkthrough confirmed loading backend examples, choosing one as a draft, saving it, and reloading gauges/examples/drafts while the Java service was stopped. The backend was restored afterward. Existing multilingual classifier exclusions and training quality were preserved rather than disguised.
+
+Multilingual batching, progress and provenance: [Multilingual insights implementation](MULTILINGUAL-INSIGHTS.md).

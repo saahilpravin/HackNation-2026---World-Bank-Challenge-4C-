@@ -12,6 +12,7 @@ public class InsightService {
 
     private final ClassifierService classifier;
     private final Texts texts;
+    private ReviewAnalysisService analysis;
     @org.springframework.beans.factory.annotation.Autowired
     private InsightsLlmService llm;
 
@@ -20,7 +21,12 @@ public class InsightService {
         this.texts = texts;
     }
 
-    public Dto.InsightsResponse build(Dto.InsightsRequest req) throws Exception {
+    @org.springframework.beans.factory.annotation.Autowired
+    public InsightService(ClassifierService classifier, Texts texts, ReviewAnalysisService analysis) {
+        this(classifier,texts); this.analysis=analysis;
+    }
+    public Dto.InsightsResponse build(Dto.InsightsRequest req) throws Exception { return build(req, n -> {}); }
+    public Dto.InsightsResponse build(Dto.InsightsRequest req, java.util.function.IntConsumer progress) throws Exception {
         String requested = req.ownerLanguage();
         String lang = texts.hasInsights(requested) ? requested : "en";
         String note = (requested != null && !requested.equals(lang))
@@ -28,7 +34,7 @@ public class InsightService {
 
         // 1. classify every review once
         List<Dto.Analysis> all = new ArrayList<>();
-        for (Dto.ReviewIn r : req.reviews()) all.add(classifier.analyze(r));
+        for (Dto.ReviewIn r : req.reviews()) { all.add(analysis == null ? classifier.analyze(r) : analysis.analyze(r)); progress.accept(all.size()); }
         List<Dto.Analysis> ok = all.stream().filter(a -> !a.needsReview()).toList();
         List<Integer> unread = all.stream().filter(Dto.Analysis::needsReview)
                 .map(Dto.Analysis::reviewId).toList();
@@ -77,13 +83,18 @@ public class InsightService {
         String unreadNote = unread.isEmpty() ? null : texts.getOrEn(lang, "insights", "unread");
         return new Dto.InsightsResponse(
                 new Dto.Meta(all.size(), analysed, unread.size(), lang,
-                        all.isEmpty() ? null : all.get(0).modelVersion(), note),
+                        all.stream().filter(a -> !a.modelVersion().equals("translation-unavailable")).map(Dto.Analysis::modelVersion).findFirst().orElse("unavailable"), note,
+                        (int)all.stream().filter(a -> a.translation()!=null && a.translation().status().equals("translated")).count(),
+                        (int)all.stream().filter(a -> a.translation()!=null && a.translation().status().equals("failed")).count()),
                 new Dto.Quantitative(avg, dist, sentiment, langs, aspects, trend),
                 qual, new Dto.Attention(unread, unreadNote));
     }
 
     public Dto.InsightsResponse withNarrative(Dto.InsightsRequest req) throws Exception {
-        Dto.InsightsResponse base = build(req);
+        return withNarrative(req,n -> {});
+    }
+    public Dto.InsightsResponse withNarrative(Dto.InsightsRequest req, java.util.function.IntConsumer progress) throws Exception {
+        Dto.InsightsResponse base = build(req,progress);
         if (!req.includeNarrative()) return base;
         return new Dto.InsightsResponse(base.meta(), base.quantitative(), base.qualitative(), base.attention(), llm.summarize(base));
     }
@@ -107,7 +118,9 @@ public class InsightService {
                         .replace("{count}", String.valueOf(n)).replace("{total}", String.valueOf(analysed))
                         .replace("{aspect}", name);
                 List<Dto.Quote> quotes = evs.stream().limit(3).map(v -> new Dto.Quote(
-                        v.a().reviewId(), v.a().language(), v.a().rating(), v.h().evidence())).toList();
+                        v.a().reviewId(), v.a().language(), v.a().rating(), v.h().evidence(),
+                        v.a().translation()==null?null:v.a().translation().originalText(),
+                        v.a().translation()==null?null:v.a().translation().modelVersion())).toList();
                 return new Dto.Finding(aspect, name, n, analysed, share, priority,
                         priority == null ? null : texts.getOrEn(lang, "insights", "priority", priority),
                         summary, neg ? texts.getOrEn(lang, "insights", "actions", aspect) : null,

@@ -10,11 +10,20 @@ MODEL = "facebook/nllb-200-distilled-600M"
 LANGUAGES = {row["name"]: row["code"] for row in json.loads((Path(__file__).resolve().parents[2] / "src/data/nllb-languages.json").read_text())}
 
 
+def resolve_language(value):
+    if value in LANGUAGES: return value
+    aliases = {"en": "eng_Latn", "sw": "swh_Latn", "fr": "fra_Latn", "es": "spa_Latn", "de": "deu_Latn", "it": "ita_Latn", "pt": "por_Latn", "ar": "arb_Arab", "zh": "zho_Hans", "ja": "jpn_Jpan"}
+    code = aliases.get(value, value)
+    return next((name for name, item in LANGUAGES.items() if item == code), None)
+
+
 def validate(row):
     if not isinstance(row.get("text"), str) or not row["text"].strip():
         raise ValueError("Each case needs nonempty text.")
-    if row.get("from") not in LANGUAGES or row.get("to") not in LANGUAGES:
+    source, target = resolve_language(row.get("from")), resolve_language(row.get("to"))
+    if source is None or target is None:
         raise ValueError("Choose a supported language for from/to.")
+    row["from"], row["to"] = source, target
     return row
 
 
