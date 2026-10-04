@@ -23,7 +23,7 @@ public class InsightService {
     private static final Map<String, String> NAMES = Map.of(
         "guide", "the guide", "coffee_tasting", "the coffee tasting", "price_value", "price and value",
         "communication", "communication", "facilities", "facilities",
-        "access_transport", "getting to the farm", "food", "the food", "other", "general comments");
+        "access_transport", "location and transport", "food", "the food", "other", "general comments");
 
     public Dto.InsightsResponse build(List<Dto.AnalyzeResponse> reviews) {
         int total = reviews.size();
@@ -45,7 +45,7 @@ public class InsightService {
     private List<Dto.SummaryPoint> top(Map<String, Set<Integer>> hits, String sentiment, int total) {
         return hits.entrySet().stream()
                 .filter(e -> e.getKey().endsWith("|" + sentiment))
-                .sorted((a, b) -> b.getValue().size() - a.getValue().size())
+                .sorted(Comparator.<Map.Entry<String, Set<Integer>>>comparingInt(e -> e.getValue().size()).reversed().thenComparing(Map.Entry::getKey))
                 .limit(3)
                 .map(e -> {
                     String aspect = e.getKey().split("\\|")[0];

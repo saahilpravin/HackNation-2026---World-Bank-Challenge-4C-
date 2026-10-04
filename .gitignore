@@ -58,3 +58,9 @@ ml/artifacts/*.onnx
 ml/artifacts/emb_*.npy
 ml/artifacts/encoder/*.onnx
 ml/data/yelp/
+
+# Local Java dependency cache and worktree dependency link
+.maven-cache/
+node_modules
+
+*.onnx.part

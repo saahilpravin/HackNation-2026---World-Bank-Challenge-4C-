@@ -17,6 +17,12 @@ class ParityTest {
     ClassifierService svc;
 
     @Test
+    void conflictingAspectSentimentsNeedHumanVerification() throws Exception {
+        var result=svc.analyze(new com.lauda.api.dto.Dto.AnalyzeRequest(1,"The toilets were dirty and there was nowhere shaded to sit.","en",2));
+        assertTrue(result.needsReview(), "Conflicting aspect labels must be flagged");
+    }
+
+    @Test
     void matchesPython() throws Exception {
         JsonNode golden = new ObjectMapper()
                 .readTree(Path.of("../ml/artifacts/golden.json").toFile());

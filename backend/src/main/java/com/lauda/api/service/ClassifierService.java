@@ -141,7 +141,7 @@ public class ClassifierService {
 
     // ---------- 4. Head: vector -> one probability per label ----------
 
-    public double[] scores(String raw) throws OrtException {
+    public synchronized double[] scores(String raw) throws OrtException {
         float[] e = embed(normalize(raw));
         double[] p = new double[labels.length];
         for (int j = 0; j < labels.length; j++) {
@@ -154,7 +154,7 @@ public class ClassifierService {
 
     // ---------- 5. Decision logic: scores -> API response ----------
 
-    public Dto.AnalyzeResponse analyze(Dto.AnalyzeRequest r) throws OrtException {
+    public synchronized Dto.AnalyzeResponse analyze(Dto.AnalyzeRequest r) throws OrtException {
         String t = normalize(r.text());
         List<Dto.AspectHit> hits = new ArrayList<>();
 
@@ -184,7 +184,8 @@ public class ClassifierService {
         }
 
         boolean untestedLanguage = r.language() != null && !testedLangs.contains(r.language());
-        boolean needsReview = hits.isEmpty() || untestedLanguage;
+        boolean contradictory = hits.stream().anyMatch(a -> hits.stream().anyMatch(other -> other.aspect().equals(a.aspect()) && !other.sentiment().equals(a.sentiment())));
+        boolean needsReview = hits.isEmpty() || untestedLanguage || contradictory;
 
         return new Dto.AnalyzeResponse(r.id(), hits, overall, needsReview, version);
     }

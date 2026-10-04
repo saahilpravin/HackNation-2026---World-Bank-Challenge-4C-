@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
-@CrossOrigin(origins = "*")   // development only: restrict to the real frontend origin later
+@CrossOrigin(origins = {"http://localhost:8082", "http://localhost:8084", "http://localhost:8087", "http://127.0.0.1:8087"})
 public class ReviewController {
 
     private final ClassifierService classifier;
