@@ -44,7 +44,7 @@ export function ProfileForm({ onboarding = false }: { onboarding?: boolean }) {
       <Body>
         {onboarding
           ? "Set up once. Your profile stays on this device."
-          : "Your business facts guide suggested replies."}
+          : "Your business details stay in your local workspace."}
       </Body>
       {(
         [

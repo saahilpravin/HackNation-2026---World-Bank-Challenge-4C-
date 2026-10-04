@@ -1,8 +1,4 @@
-import { aspects, fingerprint } from "../../ai/review-analysis";
-import { reviewCategories } from "../../ai/review-categories";
 import { findReviewTranslation, saveReviewTranslation } from "../../ai/translation-cache";
-import { suggestReviewResponse } from "../../ai/review-assistant";
-import type { AssistantOutput } from "../../ai/assistant-contract";
 import { Avatar, LanguagePicker, Stars } from "../../components/studio";
 import { Platform, View } from "react-native";
 import { translateOnLaptop } from "../../ai/laptop-translation";
@@ -22,7 +18,6 @@ function ReplyForm() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, update, translationToken } = useStore();
   const review = data?.reviews.find(r => r.id === id);
-  const measured = data?.reviewAnalysis?.fingerprint === fingerprint((data?.reviews??[]).filter(r=>r.demo===review?.demo)) ? data.reviewAnalysis.result.reviews.find(r=>r.id===id) : undefined;
   const saved = data?.reviewReplies?.find(r => r.reviewId === id);
   const savedDraft = data?.reviewDrafts?.find(r => r.reviewId === id);
   const validLanguage = (l?: string): ReplyLanguage => replyLanguages.find(v => v === l) ?? "English";
@@ -48,8 +43,6 @@ function ReplyForm() {
   const [from, setFrom] = useState<ReplyLanguage>(validLanguage(savedDraft?.writingLanguage ?? saved?.writingLanguage ?? data?.profile?.language));
   const [to, setTo] = useState<ReplyLanguage>(validLanguage(savedDraft?.customerLanguage ?? saved?.customerLanguage ?? review?.language));
   const [draft, setDraft] = useState(savedDraft?.draft ?? saved?.draft ?? "");
-  const [example, setExample] = useState("");
-  const [exampleInfo, setExampleInfo] = useState<AssistantOutput | null>(null);
   const [translated, setTranslated] = useState(savedDraft ? "" : saved?.translatedText ?? "");
   const [source, setSource] = useState<"manual" | "local-template" | "on-device-model" | "local-laptop-model">(saved?.source ?? "manual");
   const [modelVersion, setModelVersion] = useState<string | null>(saved?.modelVersion ?? null);
@@ -60,13 +53,6 @@ function ReplyForm() {
   const [busy, setBusy] = useState(false);
   const revision = useRef(0);
   const invalidate = () => { revision.current++; setTranslated(""); setKey(""); setStatus(""); setModelVersion(null); setLatencyMs(undefined); };
-  const suggest = async () => {
-    if (!review || !data?.profile || busy) return;
-    const version = revision.current; setBusy(true);
-    try { const output = await suggestReviewResponse(review, data.profile, from); if (version === revision.current) { setExample(output.text); setExampleInfo(output); } }
-    catch(e) { if (version === revision.current) setStatus(e instanceof Error ? e.message : "Assistant unavailable. You can still write your response."); }
-    finally { setBusy(false); }
-  };
   const translate = async () => {
     if (translating) return;
     const version = revision.current;
@@ -109,18 +95,11 @@ function ReplyForm() {
       {cachedReading && <Muted>Saved NLLB translation · available offline · check meaning before use.</Muted>}
       {!!readingStatus && <Notice text={readingStatus} />}
     </Card>
-    {measured&&<Card><Badge label="Measured local classification"/><Heading>AI review observations</Heading>{measured.aspects.map(hit=><Body key={`${hit.aspect}-${hit.sentiment}`}>{reviewCategories.find(c=>c.id===aspects[hit.aspect])?.title??hit.aspect} · {hit.sentiment} · model score {hit.score.toFixed(2)}</Body>)}<Muted>{measured.needsReview?"Human verification needed: this language is unverified, labels conflict, or no category was confidently detected.":"Check the original review before relying on these labels."} Model scores are not measured accuracy.</Muted></Card>}
     {(saved || review.exampleResponse) && <Card><Badge label={saved ? "Approved on this device" : "Example · already answered"} /><Heading>Previous response</Heading><Body>{saved?.translatedText ?? review.exampleResponse?.text}</Body><Muted>{saved?.approvedAt.slice(0,10) ?? review.exampleResponse?.respondedAt} · {saved?.customerLanguage ?? review.exampleResponse?.language}</Muted></Card>}
     <Card>
-      <Heading>Make it your own</Heading>
-      <LanguagePicker label="Your writing language" languages={replyLanguages} value={from} onChange={l => { invalidate(); setFrom(validLanguage(l)); setExample(""); }} disabled={busy} />
+      <Heading>Respond to review</Heading>
+      <LanguagePicker label="Your writing language" languages={replyLanguages} value={from} onChange={l => { invalidate(); setFrom(validLanguage(l)); }} disabled={busy} />
       <LanguagePicker label="Customer’s language" languages={replyLanguages} value={to} onChange={l => { invalidate(); setTo(validLanguage(l)); }} disabled={busy} />
-    </Card>
-    <Card>
-      <Heading>Suggested response</Heading><Badge label={exampleInfo && exampleInfo.source !== "authored-example" ? `AI draft · ${exampleInfo.source}` : "Offline example · Authored template"} />
-      <Muted>{exampleInfo && exampleInfo.source !== "authored-example" ? `Model: ${exampleInfo.modelVersion}. Review the draft before using it.` : "Optional wording to get you started. These authored examples use the rating; your teammate’s AI adapter will replace them."}</Muted>
-      <Button label="Show example response" onPress={() => void suggest()} secondary disabled={busy} />
-      {!!example && <><Body>{example}</Body><Button label="Use this example" onPress={() => { invalidate(); setDraft(example); }} disabled={busy} /></>}
     </Card>
     <Card><Heading>Write your response</Heading>
       <Field label={`Your response (${from})`} value={draft} onChange={v => { if (!busy) { invalidate(); setDraft(v); } }} multiline />
