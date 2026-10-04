@@ -64,3 +64,5 @@ Implemented integration and offline launch instructions: [Offline LLM runbook](d
 Run `npm run translate` from this folder. It installs missing Python dependencies and downloads the pinned NLLB model on first use, then runs locally. No separate GitHub repository is needed. Later use `npm run translate:offline` with internet disabled. See [translation setup](ai/translation/README.md) for Python prerequisites, phone connection and storage requirements.
 
 See [Multilingual review insights](docs/MULTILINGUAL-INSIGHTS.md) for the local NLLB-to-classifier pipeline, batch progress, cache and offline operation.
+
+The [visual review brief](docs/INSIGHT-VISUAL-DESIGN.md) maps the backend payload to the mobile charts and explains the local Qwen summary. After one-time setup, `npm run ai:llm`, `npm run translate:offline` and `npm run ai:backend` start the local AI services in separate terminals.

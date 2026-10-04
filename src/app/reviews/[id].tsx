@@ -84,7 +84,7 @@ function ReplyForm() {
     finally { setBusy(false); }
   };
   if (!review) return <Page title="Review reply" back><Body>Review not found.</Body></Page>;
-  return <Page title="Reply to a review" subtitle="Your words, checked before sharing." back>
+  return <Page title="Review details" subtitle="Understand the feedback. Make your reply count." back>
     <Card>
       <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}><Avatar name={review.guest} /><View style={{ flex: 1, gap: 5 }}><Heading>{review.guest}</Heading><Stars rating={review.rating} /><Muted>{review.language ?? "Language unknown"} · {review.date ?? "Imported review"}</Muted></View></View>
       <Badge label={review.demo ? "Synthetic sample review" : "Imported feedback"} />
@@ -108,8 +108,7 @@ function ReplyForm() {
       <Heading>Respond to review</Heading>
       <LanguagePicker label="Your writing language" languages={replyLanguages} value={from} onChange={l => { invalidate(); setFrom(validLanguage(l)); }} disabled={busy} />
       <LanguagePicker label="Customer’s language" languages={replyLanguages} value={to} onChange={l => { invalidate(); setTo(validLanguage(l)); }} disabled={busy} />
-    </Card>
-    <Card><Heading>Write your response</Heading>
+      <Heading>Write your response</Heading>
       <Field label={`Your response (${from})`} value={draft} onChange={v => { if (!busy) { invalidate(); setDraft(v); } }} multiline />
       {savedDraft && <Muted>{savedDraft.draft === draft && savedDraft.writingLanguage === from && savedDraft.customerLanguage === to ? "Draft saved on this device" : "Unsaved edits · save your draft before leaving"}</Muted>}
       <Button secondary label={busy ? "Saving…" : "Save draft for later"} disabled={busy || translating || !draft.trim()} onPress={() => void saveDraft()} />
