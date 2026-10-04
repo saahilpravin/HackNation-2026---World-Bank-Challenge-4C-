@@ -36,7 +36,10 @@
     "web": "expo start --web --port 8082",
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test tests/*.test.ts",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "translate": "python3 scripts/start-translation.py",
+    "translate:offline": "python3 scripts/start-translation.py --offline",
+    "translate:setup": "python3 scripts/start-translation.py --setup-only"
   },
   "private": true
 }

@@ -58,3 +58,7 @@ Large weights, Python environments and build outputs are excluded from Git. The 
 - [Offline LLM preparation and Java backend integration](docs/OFFLINE-LLM-IMPLEMENTATION-PLAN.md)
 
 Implemented integration and offline launch instructions: [Offline LLM runbook](docs/OFFLINE-LLM-RUNBOOK.md).
+
+### Translation is included in this project
+
+Run `npm run translate` from this folder. It installs missing Python dependencies and downloads the pinned NLLB model on first use, then runs locally. No separate GitHub repository is needed. Later use `npm run translate:offline` with internet disabled. See [translation setup](ai/translation/README.md) for Python prerequisites, phone connection and storage requirements.

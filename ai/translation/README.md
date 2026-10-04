@@ -1,64 +1,57 @@
-# NLLB translation experiment
+# Built-in NLLB translation service
 
-Selected model: https://huggingface.co/facebook/nllb-200-distilled-600M
-Official usage: https://huggingface.co/docs/transformers/model_doc/nllb
+Lauda includes the language catalog, translation code, pinned model manifest, model installer and laptop service in this repository. Users do **not** clone FLORES, Fairseq or another GitHub repository to translate.
 
-This runs real translation locally on a laptop CPU. It does not connect a server or model to the Expo application, and it does not generate review responses or summarize reviews. The app continues to label its template provider honestly.
-
-From the repository root (Python 3.12 recommended):
+From the Lauda project folder:
 
 ```sh
-python3.12 -m venv .venv-ai
-.venv-ai/bin/python -m pip install -r ai/translation/requirements.txt
-HF_HOME="$PWD/.ai-cache" HF_XET_CACHE="$PWD/.ai-cache/xet" .venv-ai/bin/python ai/translation/run.py
+npm run translate
 ```
 
-The first run downloads model files from Hugging Face; expect about 5 GB for the downloaded weights plus a self-contained local checkpoint. Subsequent runs can require a completely local cache:
+On first use, the launcher creates `.venv-ai`, installs the pinned Python dependencies, downloads `facebook/nllb-200-distilled-600M` from its pinned Hugging Face revision, and writes `.ai-cache/local-nllb`. Then it starts translation at `http://127.0.0.1:8085`. Keep the terminal running alongside the app.
+
+Prerequisites: Node/npm and Python 3.10–3.12 (3.12 recommended). First use requires internet and approximately 5 GB of free disk space for the model hub cache plus local checkpoint. Large weights are downloaded by code rather than checked into Git. No visitor text is sent to Hugging Face; the download retrieves model files only.
+
+After setup:
 
 ```sh
-HF_HOME="$PWD/.ai-cache" HF_HUB_OFFLINE=1 .venv-ai/bin/python ai/translation/run.py --offline
+npm run translate:offline
 ```
 
-Output: `ai/translation/results/latest.json`, including the resolved model commit, environment versions, initial download/checkpoint preparation or offline load time and per-case inference time. Copy the commit hash into `--revision` for repeatability. Weights, environment, and local results are ignored by Git. Use `requirements.lock.txt` to recreate the measured environment.
-
-`cases.jsonl` is a set of authored smoke-test inputs. Add JSON lines containing id, from, to and text. Supported first-stage language names are English, French and Kiswahili. The runner splits on simple sentence boundaries and translates each segment independently; abbreviations and paragraph formatting need review. Sentences over 512 tokens fail rather than silently dropping text. These cases have no professional reference translations, so successful execution is not an accuracy result. Have a bilingual reviewer check meaning, names, numbers, negation and politeness. Do not use back-translation as the only quality test.
-
-For FLORES evaluation, keep corresponding lines from eng_Latn, fra_Latn and swh_Latn aligned within the same published split. Compare model outputs against the target references using chrF++, with corpus version, split, language direction and metric signature recorded. Do not train on the held-out evaluation split. Download the dataset separately with its citation/license. These smoke tests do not claim to be FLORES examples.
-
-Before native integration: convert/quantize with a supported encoder-decoder runtime and verify tokenizer/language IDs; check translation fidelity after conversion; measure RAM, cold load, inference, model storage and battery on the actual target phone in airplane mode. Python dependencies cannot be bundled directly into Expo Go. Implement a native translation adapter only after those checks. A laptop-backed development server would need to be labeled laptop inference, never on-device/offline-phone AI.
-
-The model card lists CC-BY-NC 4.0 and describes research use rather than production deployment. Revisit licensing/model choice before commercial release.
-
-Checks:
+This refuses to install/download anything missing. Runtime inference loads local files only. A running compatible loopback service is reused. To prepare without starting the service:
 
 ```sh
-python3.12 -m unittest discover -s ai/translation -p 'test_*.py'
+npm run translate:setup
 ```
 
-## Connected web preview
-
-After creating the local checkpoint, start the bridge from the repository root:
+The web app defaults to port 8085 for translation. A native phone must use the laptop's private LAN address in Offline & AI. To start a private LAN bridge, pass a specific private address:
 
 ```sh
-HF_HOME="$PWD/.ai-cache" HF_HUB_OFFLINE=1 .venv-ai/bin/python ai/translation/server.py
+npm run translate -- --bind 192.168.1.20 --port 8086
 ```
 
-Keep this terminal running, then open the Expo web preview on localhost:8082 or localhost:8084. Open Insights → a review → write your response → choose the customer's language → Translate. The web client calls 127.0.0.1:8085. Inference stays on the laptop, uses cached weights only, and requires no cloud API key. The bridge binds only to loopback, permits only those preview origins, limits input sizes, and serializes inference requests. It does not log draft text. An unavailable service returns an error; it never silently substitutes a template for model output.
+The service prints a temporary pairing code for that bridge. Phone and laptop need a local connection; internet can be disconnected. This remains laptop inference, not a model embedded inside Expo Go.
 
-The review reply page records laptop-model provenance and inference latency on approval. Replies are saved locally, not published. Mobile native builds continue to use explicit template translation because an in-app NLLB runtime is not installed. The localhost bridge cannot be reached from a separate phone and is not a phone-offline feature. Personalized reply suggestions still use authored examples: NLLB is a translator, not an instruction model.
+## Implementation
 
-## Mobile app connection over Wi-Fi
+- `scripts/start-translation.py`: environment setup, dependency installation when needed, offline flag, reuse/start service.
+- `ai/translation/prepare.py`: pinned download and atomic checkpoint preparation; preserves incompatible existing checkpoints.
+- `ai/translation/model-manifest.json`: model identity and exact revision.
+- `ai/translation/server.py`: local inference, request limits, browser origin checks and mobile pairing.
+- `ai/translation/run.py`: optional smoke-test runner using the same installer/checkpoint.
+- `src/data/nllb-languages.json`: shipped NLLB language/script variants used by the searchable UI and server.
+- `src/ai/laptop-translation.ts`: frontend adapter.
 
-The native review composer now uses the saved translationEndpoint plus an in-memory pairing code to call NLLB. With no saved endpoint it still labels its template fallback. Configure Offline & AI → Connect mobile translation. Test and save a successful connection; then open a review and translate. Language/draft edits still invalidate the response. Pairing codes are not stored in SQLite, browser storage or Git; re-enter after restarting the app.
+NLLB translation coverage and review-classifier coverage are separate. The classifier's `ml/common.py` and exported `ml/artifacts/head_v1.json` currently list only `en` and `sw`. Simply removing that guard does not prove reliable analysis. Translating reviews into English before classification requires a separate provenance-aware pipeline; this installer does not silently change classification or its counts.
 
-Start a separate mobile bridge on the laptop's specific private Wi-Fi IP (shown in macOS network settings):
+## Quality and license
+
+Language selection does not guarantee equal translation quality. Check names, numbers, negation and meaning. Inputs are split into sentences; a sentence exceeding 512 tokens is rejected instead of truncated. `cases.jsonl` contains authored smoke tests, not a FLORES benchmark.
+
+The [official model card](https://huggingface.co/facebook/nllb-200-distilled-600M) specifies CC-BY-NC-4.0 and research use rather than production deployment. This integration supports the hackathon prototype; choose appropriately licensed models before commercial deployment.
+
+Run checks:
 
 ```sh
-HF_HOME="$PWD/.ai-cache" HF_HUB_OFFLINE=1 .venv-ai/bin/python ai/translation/server.py --bind YOUR_PRIVATE_WIFI_IP --port 8086
+python3 -m unittest discover -s ai/translation -p 'test_*.py' -v
 ```
-
-Enter the printed address and pairing code into the phone. Both devices must be on a network that permits peer connections; guest Wi-Fi isolation or the Mac firewall can prevent connection. The service generates a new code each restart and rejects native requests without it. Browser requests from unrelated origins remain blocked. Do not bind to 0.0.0.0 or expose the service to the public internet.
-
-HTTP on trusted local Wi-Fi is a development/demo connection and is not encrypted. Installed iOS/Android builds may block HTTP by platform policy. For those builds use a certificate trusted by the phone, with `--cert certificate.pem --key private-key.pem`, and enter the HTTPS address. Do not disable global transport security to bypass this. Allow the iOS local-network prompt if shown. Expo Go networking must be verified on the actual phone; exports alone cannot prove it works.
-
-This is laptop-hosted translation, not an offline model installed in the phone. Native phone testing is pending. Offline data and local reply approval continue to work without the bridge.
