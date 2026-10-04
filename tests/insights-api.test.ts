@@ -41,3 +41,9 @@ test("client calls the actual versioned API and explains unavailable services", 
     await assert.rejects(fetchInsights(reviews, "English"), /Saved insights are still available/);
   } finally { globalThis.fetch = original; }
 });
+test("LLM notes map evidence IDs and reject evidence from another finding", () => {
+  const narrative = { status: "generated", source: "local-laptop-llm", model: "qwen3:0.6b", digest: "digest", prompt_version: "v1", latency_ms: 40, summary: "Guide praise", aspect_notes: [{ aspect: "guide", polarity: "positive", text: reviews[0].text, review_ids: [1] }], warnings: [] };
+  assert.equal(decodeInsights({ ...response(), narrative }, reviews).narrative?.aspect_notes[0].review_ids[0], "r15");
+  assert.throws(() => decodeInsights({ ...response(), narrative: { ...narrative, aspect_notes: [{ ...narrative.aspect_notes[0], review_ids: [2] }] } }, reviews));
+  assert.throws(() => decodeInsights({ ...response(), narrative: { ...narrative, status: "timeout" } }, reviews));
+});

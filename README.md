@@ -56,3 +56,5 @@ Large weights, Python environments and build outputs are excluded from Git. The 
 
 - [Review gauges, sentiment, example responses and dashboard payload mapping](docs/REVIEW-AND-INSIGHTS-INTEGRATION-PLAN.md)
 - [Offline LLM preparation and Java backend integration](docs/OFFLINE-LLM-IMPLEMENTATION-PLAN.md)
+
+Implemented integration and offline launch instructions: [Offline LLM runbook](docs/OFFLINE-LLM-RUNBOOK.md).

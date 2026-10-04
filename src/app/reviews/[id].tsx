@@ -1,3 +1,5 @@
+import { ReviewAnalysis } from "../../components/review-analysis";
+import { languageCode } from "../../ai/insights-api";
 import { findReviewTranslation, saveReviewTranslation } from "../../ai/translation-cache";
 import { Avatar, LanguagePicker, Stars } from "../../components/studio";
 import { Platform, View } from "react-native";
@@ -96,6 +98,12 @@ function ReplyForm() {
       {!!readingStatus && <Notice text={readingStatus} />}
     </Card>
     {(saved || review.exampleResponse) && <Card><Badge label={saved ? "Approved on this device" : "Example · already answered"} /><Heading>Previous response</Heading><Body>{saved?.translatedText ?? review.exampleResponse?.text}</Body><Muted>{saved?.approvedAt.slice(0,10) ?? review.exampleResponse?.respondedAt} · {saved?.customerLanguage ?? review.exampleResponse?.language}</Muted></Card>}
+    <ReviewAnalysis review={review} onUse={example => {
+      if (draft.trim()) { setStatus("Your existing draft is kept. Clear it first to use an example response."); return; }
+      const actualLanguage = replyLanguages.find(l => languageCode(l) === example.language);
+      if (!actualLanguage) { setStatus("This example’s language is unavailable in the editor. Copy and check it manually."); return; }
+      invalidate(); setFrom(actualLanguage); setDraft(example.text); setSource("local-template"); setStatus(`Example loaded in ${actualLanguage}. Edit it, then translate and approve.`);
+    }} />
     <Card>
       <Heading>Respond to review</Heading>
       <LanguagePicker label="Your writing language" languages={replyLanguages} value={from} onChange={l => { invalidate(); setFrom(validLanguage(l)); }} disabled={busy} />

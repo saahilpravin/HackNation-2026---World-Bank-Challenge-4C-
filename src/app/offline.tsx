@@ -49,7 +49,7 @@ function OfflineSettings() {
       const health = await response.json();
       if (!response.ok || health.model_ready !== true) throw new Error("Review model is not ready.");
       await update(d => ({ ...d, analysisEndpoint: address }));
-      setAnalysisStatus("Review service connected. Open Insights to load the findings.");
+      setAnalysisStatus(`Review service connected. ${health.llm?.ready ? "Local Qwen summary model is ready." : "Local LLM summary is unavailable; counted findings still work."} Open Insights to load the findings.`);
     } catch { setAnalysisStatus("Cannot reach the review service. Check the address and start the Java backend."); }
     finally { clearTimeout(timeout); setAnalysisChecking(false); }
   };

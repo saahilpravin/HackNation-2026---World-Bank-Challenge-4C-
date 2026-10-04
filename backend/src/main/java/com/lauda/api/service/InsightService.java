@@ -12,6 +12,8 @@ public class InsightService {
 
     private final ClassifierService classifier;
     private final Texts texts;
+    @org.springframework.beans.factory.annotation.Autowired
+    private InsightsLlmService llm;
 
     public InsightService(ClassifierService classifier, Texts texts) {
         this.classifier = classifier;
@@ -78,6 +80,12 @@ public class InsightService {
                         all.isEmpty() ? null : all.get(0).modelVersion(), note),
                 new Dto.Quantitative(avg, dist, sentiment, langs, aspects, trend),
                 qual, new Dto.Attention(unread, unreadNote));
+    }
+
+    public Dto.InsightsResponse withNarrative(Dto.InsightsRequest req) throws Exception {
+        Dto.InsightsResponse base = build(req);
+        if (!req.includeNarrative()) return base;
+        return new Dto.InsightsResponse(base.meta(), base.quantitative(), base.qualitative(), base.attention(), llm.summarize(base));
     }
 
     private List<Dto.Finding> findings(Map<String, List<Ev>> groups, String sentiment,

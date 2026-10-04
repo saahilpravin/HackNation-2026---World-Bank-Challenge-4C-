@@ -17,6 +17,8 @@ import java.util.List;
 public class ReviewController {
     private static final int MAX_REVIEWS = 500;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.lauda.api.service.InsightsLlmService llm;
     private final ClassifierService classifier;
     private final ReplyService replies;
     private final InsightService insights;
@@ -29,6 +31,9 @@ public class ReviewController {
     public Dto.ReplyResponse replyDraft(@RequestBody Dto.ReplyRequest req) throws Exception {
         require(req != null && req.review() != null && req.review().text() != null
                 && !req.review().text().isBlank(), "review.text is required");
+        checkBatch(List.of(req.review()));
+        require(req.ownerLanguage() == null || req.ownerLanguage().length() <= 32, "owner language code is too long");
+        require(req.businessName() == null || req.businessName().length() <= 200, "business name is too long");
         return replies.draft(req);
     }
 
@@ -45,12 +50,12 @@ public class ReviewController {
     public Dto.InsightsResponse insights(@RequestBody Dto.InsightsRequest req) throws Exception {
         require(req != null, "request is required");
         checkBatch(req.reviews());
-        return insights.build(req);
+        return insights.withNarrative(req);
     }
 
     @GetMapping("/health")
     public java.util.Map<String, Object> health() {
-        return java.util.Map.of("status", "ok", "model_ready", classifier.ready());
+        return java.util.Map.of("status", "ok", "model_ready", classifier.ready(), "llm", llm.capabilities());
     }
 
     private static void checkBatch(List<Dto.ReviewIn> l) {

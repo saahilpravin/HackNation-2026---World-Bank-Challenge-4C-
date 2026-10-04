@@ -17,7 +17,12 @@ public class Dto {
             List<AspectHit> aspects,
             @JsonProperty("overall_sentiment") String overallSentiment,
             @JsonProperty("needs_review") boolean needsReview,
-            @JsonProperty("model_version") String modelVersion) {}
+            @JsonProperty("model_version") String modelVersion,
+            @JsonProperty("sentiment_source") String sentimentSource) {
+        public Analysis(int id, String language, Integer rating, String date, List<AspectHit> aspects, String sentiment, boolean needsReview, String modelVersion) {
+            this(id, language, rating, date, aspects, sentiment, needsReview, modelVersion, aspects.isEmpty() ? (rating == null ? "unknown" : "star-rating") : "aspect-model");
+        }
+    }
 
     public record BatchRequest(List<ReviewIn> reviews) {}
 
@@ -37,7 +42,10 @@ public class Dto {
 
     // ---------- insights ----------
     public record InsightsRequest(
-            @JsonProperty("owner_language") String ownerLanguage, List<ReviewIn> reviews) {}
+            @JsonProperty("owner_language") String ownerLanguage, List<ReviewIn> reviews,
+            @JsonProperty("include_narrative") boolean includeNarrative) {
+        public InsightsRequest(String language, List<ReviewIn> reviews) { this(language, reviews, false); }
+    }
 
     public record Quote(@JsonProperty("review_id") int reviewId, String language,
                         Integer rating, String text) {}
@@ -68,6 +76,16 @@ public class Dto {
             @JsonProperty("owner_language") String ownerLanguage,
             @JsonProperty("model_version") String modelVersion, String note) {}
 
+    public record NarrativeNote(String aspect, String polarity, String text,
+            @JsonProperty("review_ids") List<Integer> reviewIds) {}
+    public record Narrative(String status, String source, String model, String digest,
+            @JsonProperty("prompt_version") String promptVersion,
+            @JsonProperty("latency_ms") long latencyMs, String summary,
+            @JsonProperty("aspect_notes") List<NarrativeNote> aspectNotes, List<String> warnings) {}
     public record InsightsResponse(Meta meta, Quantitative quantitative,
-                                   Qualitative qualitative, Attention attention) {}
+                                   Qualitative qualitative, Attention attention, Narrative narrative) {
+        public InsightsResponse(Meta meta, Quantitative quantitative, Qualitative qualitative, Attention attention) {
+            this(meta, quantitative, qualitative, attention, null);
+        }
+    }
 }

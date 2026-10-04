@@ -39,7 +39,22 @@
         "positive": "We appreciate your feedback.",
         "negative": "We will review the points you raised."
       },
-      "aspect": {}
+      "aspect": {
+        "guide+": "We appreciate your positive feedback about tour guide.",
+        "guide-": "We have noted your concern about tour guide.",
+        "price_value+": "We appreciate your positive feedback about value for money.",
+        "price_value-": "We have noted your concern about value for money.",
+        "communication+": "We appreciate your positive feedback about communication.",
+        "communication-": "We have noted your concern about communication.",
+        "facilities+": "We appreciate your positive feedback about facilities.",
+        "facilities-": "We have noted your concern about facilities.",
+        "access_transport+": "We appreciate your positive feedback about getting there.",
+        "access_transport-": "We have noted your concern about getting there.",
+        "food+": "We appreciate your positive feedback about food and refreshments.",
+        "food-": "We have noted your concern about food and refreshments.",
+        "other+": "We appreciate your positive feedback about other feedback.",
+        "other-": "We have noted your concern about other feedback."
+      }
     }
   }
 }

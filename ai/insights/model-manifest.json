@@ -1,0 +1,12 @@
+{
+  "runtime": "Ollama",
+  "model": "qwen3:0.6b",
+  "digest": "7df6b6e09427a769808717c0a93cadc4ae99ed4eb8bf5ca557c90846becea435",
+  "quantization": "Q4_K_M",
+  "download_bytes": 522653767,
+  "prompt_version": "insights-v1",
+  "license": "Apache-2.0 (Qwen3 model); inspect runtime and model licenses before distribution",
+  "execution": "local laptop, not on-device phone",
+  "output_language": "English",
+  "quality": "No task-specific accuracy claim. Human review required."
+}
