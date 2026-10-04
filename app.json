@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "Lauda",
+    "slug": "lauda",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/lauda-icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#514BD2",
+        "foregroundImage": "./assets/lauda-adaptive.png",
+        "monochromeImage": "./assets/lauda-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/lauda-favicon.png",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-font"
+    ],
+    "scheme": "lauda"
+  }
+}
