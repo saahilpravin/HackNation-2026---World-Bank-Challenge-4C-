@@ -27,7 +27,7 @@ def start(name,script,url,kind,args=()):
     raise RuntimeError(name+' did not become ready. Prepare the models while online first.')
 
 try:
-    if not (ROOT/'dist/index.html').exists() or not (ROOT/'backend/target/lauda-api-0.0.1-SNAPSHOT.jar').exists(): raise RuntimeError('Build the web export and Java jar once before starting offline. See docs/LOCAL-QWEN-IMPLEMENTATION.md.')
+    if not (ROOT/'dist/index.html').exists() or not (ROOT/'backend/target/lauda-api-0.0.1-SNAPSHOT.jar').exists(): raise RuntimeError('Build the web export and Java jar once before starting offline. See docs/design-doc.md.')
     start('Qwen','start-small-llm.py','http://127.0.0.1:11434/api/tags','ollama')
     start('NLLB','start-translation.py','http://127.0.0.1:8085/health','translation',('--offline',))
     start('Review API','start-review-ai.py','http://127.0.0.1:8080/v1/health','backend',('--offline','--llm'))

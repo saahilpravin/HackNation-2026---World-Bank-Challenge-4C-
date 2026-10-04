@@ -1,0 +1,52 @@
+{
+  "folders": [
+    {
+      "name": "Lauda",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/.ai-cache": true,
+      "**/.maven-cache": true,
+      "**/.venv-ai": true,
+      "**/node_modules": true,
+      "**/target": true,
+      "**/dist": true
+    }
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Lauda: local offline demo",
+        "type": "shell",
+        "command": "npm",
+        "args": [
+          "run",
+          "demo:offline"
+        ],
+        "problemMatcher": []
+      },
+      {
+        "label": "Lauda: typecheck",
+        "type": "shell",
+        "command": "npm",
+        "args": [
+          "run",
+          "typecheck"
+        ],
+        "problemMatcher": []
+      },
+      {
+        "label": "Lauda: tests",
+        "type": "shell",
+        "command": "npm",
+        "args": [
+          "test"
+        ],
+        "problemMatcher": []
+      }
+    ]
+  }
+}

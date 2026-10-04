@@ -6,7 +6,7 @@ p = argparse.ArgumentParser(); p.add_argument('--setup', action='store_true'); a
 manifest = json.loads((root/'ai/insights/model-manifest.json').read_text())
 local = root/'.ai-cache/ollama-runtime/ollama'
 cli = str(local) if local.exists() else shutil.which('ollama')
-if not cli: raise SystemExit('Install Ollama from https://ollama.com/download first. See docs/OFFLINE-LLM-RUNBOOK.md.')
+if not cli: raise SystemExit('Install Ollama from https://ollama.com/download first. See docs/design-doc.md.')
 env = os.environ.copy(); env.update(OLLAMA_MODELS=str(root/'.ai-cache/ollama-models'), OLLAMA_HOST='127.0.0.1:11434', OLLAMA_NO_CLOUD='true')
 def tags():
     with urllib.request.urlopen('http://127.0.0.1:11434/api/tags', timeout=2) as response: return json.load(response)['models']
