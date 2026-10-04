@@ -1,5 +1,4 @@
-ASPECTS = ["guide", "price_value", "communication",
-           "facilities", "access_transport", "food", "other"]
+ASPECTS = ["access_transport", "guide", "price_value", "communication", "facilities", "other"]
 
 # Used only for weak labelling of Yelp. Lowercase substrings.
 KEYWORDS = {

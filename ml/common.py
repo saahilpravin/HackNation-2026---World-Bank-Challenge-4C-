@@ -15,7 +15,7 @@ MAX_LEN = 128
 MIN_CHARS = 10         # characters, not words (Chinese/Thai have no spaces)
 MIN_POS_TRAIN = 15
 VERSION = "v1"
-TESTED_LANGS = ["en", "sw"]    # edit: languages you actually evaluated
+TESTED_LANGS = ["en"]    # edit: languages you actually evaluated
 
 def normalize(t):
     t = unicodedata.normalize("NFKC", str(t))
