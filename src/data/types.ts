@@ -48,9 +48,10 @@ export type ReviewReply = {
   source: "local-template" | "manual" | "on-device-model" | "local-laptop-model";
   modelVersion?: string | null;
   latencyMs?: number;
+  generation?: import("../ai/review-api.ts").Generation;
   approvedAt: string;
 };
-export type ReviewDraft = { reviewId: string; draft: string; writingLanguage: string; customerLanguage: string; savedAt: string; translatedText?: string; source?: ReviewReply["source"]; modelVersion?: string | null; latencyMs?: number };
+export type ReviewDraft = { generation?: import("../ai/review-api.ts").Generation; reviewId: string; draft: string; writingLanguage: string; customerLanguage: string; savedAt: string; translatedText?: string; source?: ReviewReply["source"]; modelVersion?: string | null; latencyMs?: number };
 export type Review = {
   id: string;
   guest: string;
@@ -68,7 +69,9 @@ export type Review = {
 };
 export type ReviewTranslation = { reviewId: string; sourceText: string; from: string; to: string; text: string; modelVersion: string; latencyMs: number };
 export type Data = {
+  reviewAnalysisCache?: import("../ai/review-api.ts").ReviewAnalysisCache[];
   insightsCache?: InsightsCache;
+  summarySettings?: import("../ai/insights-api.ts").SummarySettings;
   analysisEndpoint?: string;
   reviewTranslations?: ReviewTranslation[];
   translationEndpoint?: string;

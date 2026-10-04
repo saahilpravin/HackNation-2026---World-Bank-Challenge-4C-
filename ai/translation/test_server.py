@@ -7,6 +7,7 @@ from http.server import ThreadingHTTPServer
 from server import handler, validate_bind
 
 class FakeEngine:
+    provenance = {"revision": "test-revision"}
     def translate(self, row):
         return {"text": "test-only", "source": "test"}
 

@@ -18,6 +18,7 @@
     "react-native-reanimated": "4.5.1",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
+    "react-native-svg": "15.15.4",
     "react-native-web": "^0.21.2",
     "react-native-worklets": "0.10.1"
   },
@@ -35,7 +36,15 @@
     "web": "expo start --web --port 8082",
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test tests/*.test.ts",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "translate": "python3 scripts/start-translation.py",
+    "translate:offline": "python3 scripts/start-translation.py --offline",
+    "translate:setup": "python3 scripts/start-translation.py --setup-only",
+    "ai:llm": "python3 scripts/start-small-llm.py",
+    "ai:backend": "python3 scripts/start-review-ai.py --offline --llm",
+    "demo:offline": "python3 scripts/start-local-demo.py",
+    "ai:evaluate": "python3 scripts/evaluate-local-replies.py",
+    "ai:build": "python3 scripts/start-review-ai.py --build-only"
   },
   "private": true
 }

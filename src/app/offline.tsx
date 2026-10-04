@@ -49,7 +49,7 @@ function OfflineSettings() {
       const health = await response.json();
       if (!response.ok || health.model_ready !== true) throw new Error("Review model is not ready.");
       await update(d => ({ ...d, analysisEndpoint: address }));
-      setAnalysisStatus("Review service connected. Open Insights to load the findings.");
+      setAnalysisStatus(`Review service connected. ${health.llm?.ready ? "Local Qwen is ready for reply ideas and the review brief." : "Local Qwen is unavailable; saved results and counted findings still work."} Open Insights to load the findings.`);
     } catch { setAnalysisStatus("Cannot reach the review service. Check the address and start the Java backend."); }
     finally { clearTimeout(timeout); setAnalysisChecking(false); }
   };
@@ -112,7 +112,8 @@ function OfflineSettings() {
         <Badge label="Translation · laptop connection" />
         <Body>Custom NLLB translation runs on your laptop. After the model is downloaded, it can work without internet while your phone remains connected to the same local Wi-Fi.</Body>
         <Badge label="Review insights · local classifier" />
-        <Body>Insights loads measured aspect findings from the local Java backend and saves them on this device. Findings use fixed evidence-linked wording. Write review responses yourself and use NLLB for translation.</Body>
+        <Body>Insights loads aspect findings from the local Java backend and saves them on this device. Local Qwen writes the review brief and optional response ideas; you edit and approve every reply.</Body>
+        <Badge label="Qwen · local laptop model" /><Body>After setup, Qwen drafts replies and summarizes saved findings without internet on the laptop. Previously saved results remain available when that service is disconnected.</Body>
         <Muted>No model runs on this phone yet. Fully disconnected phone AI needs a compact model and a native inference runtime.</Muted>
       </Card>
       <Card>

@@ -3,17 +3,27 @@ import argparse
 import json
 import re
 from pathlib import Path
+from prepare import MANIFEST, prepare
 import time
 
 MODEL = "facebook/nllb-200-distilled-600M"
 LANGUAGES = {row["name"]: row["code"] for row in json.loads((Path(__file__).resolve().parents[2] / "src/data/nllb-languages.json").read_text())}
 
 
+def resolve_language(value):
+    if value in LANGUAGES: return value
+    aliases = {"en": "eng_Latn", "sw": "swh_Latn", "fr": "fra_Latn", "es": "spa_Latn", "de": "deu_Latn", "it": "ita_Latn", "pt": "por_Latn", "ar": "arb_Arab", "zh": "zho_Hans", "ja": "jpn_Jpan"}
+    code = aliases.get(value, value)
+    return next((name for name, item in LANGUAGES.items() if item == code), None)
+
+
 def validate(row):
     if not isinstance(row.get("text"), str) or not row["text"].strip():
         raise ValueError("Each case needs nonempty text.")
-    if row.get("from") not in LANGUAGES or row.get("to") not in LANGUAGES:
+    source, target = resolve_language(row.get("from")), resolve_language(row.get("to"))
+    if source is None or target is None:
         raise ValueError("Choose a supported language for from/to.")
+    row["from"], row["to"] = source, target
     return row
 
 
@@ -28,7 +38,7 @@ def main():
     parser.add_argument("--output", type=Path, default=Path(__file__).parent / "results/latest.json")
     parser.add_argument("--cache", type=Path, default=Path(__file__).resolve().parents[2] / ".ai-cache")
     parser.add_argument("--offline", action="store_true", help="Require previously downloaded files; no network.")
-    parser.add_argument("--revision", default="main", help="Use recorded commit hash for repeatability.")
+    parser.add_argument("--revision", default=MANIFEST["revision"], help="Use recorded commit hash for repeatability.")
     args = parser.parse_args()
     rows = [validate(json.loads(line)) for line in args.cases.read_text().splitlines() if line.strip()]
     if not rows:
@@ -37,25 +47,12 @@ def main():
     import transformers
     from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
     started = time.perf_counter()
-    options = {"cache_dir": str(args.cache), "local_files_only": args.offline, "revision": args.revision}
-    checkpoint = args.cache / "local-nllb"
-    manifest_path = checkpoint / "lauda-provenance.json"
-    if args.offline:
-        if not manifest_path.exists():
-            raise ValueError("Run once online to assemble the local checkpoint before --offline.")
-        provenance = json.loads(manifest_path.read_text())
-        if args.revision != "main" and args.revision != provenance["revision"]:
-            raise ValueError("Cached checkpoint revision differs from requested revision.")
-        tokenizer = AutoTokenizer.from_pretrained(checkpoint, src_lang="eng_Latn", local_files_only=True)
-        model = AutoModelForSeq2SeqLM.from_pretrained(checkpoint, use_safetensors=True, low_cpu_mem_usage=False, local_files_only=True).eval()
-    else:
-        tokenizer = AutoTokenizer.from_pretrained(MODEL, src_lang="eng_Latn", **options)
-        model = AutoModelForSeq2SeqLM.from_pretrained(MODEL, use_safetensors=True, low_cpu_mem_usage=False, **options).eval()
-        provenance = {"model": MODEL, "revision": getattr(model.config, "_commit_hash", None)}
-        checkpoint.mkdir(parents=True, exist_ok=True)
-        model.save_pretrained(checkpoint, safe_serialization=True)
-        tokenizer.save_pretrained(checkpoint)
-        manifest_path.write_text(json.dumps(provenance))
+    if args.revision != MANIFEST["revision"]:
+        raise ValueError("Revision differs from project model-manifest.json; update the manifest deliberately first.")
+    checkpoint = prepare(args.cache, args.offline)
+    provenance = json.loads((checkpoint / "lauda-provenance.json").read_text())
+    tokenizer = AutoTokenizer.from_pretrained(checkpoint, src_lang="eng_Latn", local_files_only=True)
+    model = AutoModelForSeq2SeqLM.from_pretrained(checkpoint, use_safetensors=True, low_cpu_mem_usage=False, local_files_only=True).eval()
     load_ms = round((time.perf_counter() - started) * 1000)
     results = []
     for row in rows:

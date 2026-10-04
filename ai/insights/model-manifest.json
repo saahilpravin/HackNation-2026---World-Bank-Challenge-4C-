@@ -1,0 +1,18 @@
+{
+  "runtime": "Ollama",
+  "model": "qwen3:4b",
+  "digest": "359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+  "quantization": "Q4_K_M",
+  "download_bytes": 2497293931,
+  "prompt_version": "insights-v4-customized",
+  "license": "Apache-2.0 (Qwen3 model); inspect runtime and model licenses before distribution",
+  "execution": "local laptop, not on-device phone",
+  "output_language": "English generation, optional local NLLB translation",
+  "quality": "No task-specific accuracy claim. Human review required.",
+  "reply_prompt_version": "reply-v4-grounded",
+  "tasks": [
+    "review-drafts",
+    "insights-overview"
+  ],
+  "selection": "0.6B rejected after direct inspection found complaint reversals; 4B evaluated locally before release."
+}

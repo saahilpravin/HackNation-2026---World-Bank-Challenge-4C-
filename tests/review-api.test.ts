@@ -1,0 +1,32 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { decodeAnalysis, decodeExamples, fetchReviewExamples, reviewAnalysisKey, saveAnalysisCache } from "../src/ai/review-api.ts";
+import type { Review } from "../src/data/types.ts";
+const review: Review = { id: "custom-id", guest: "Guest", rating: 2, text: "Poor facilities", language: "English", theme: "facilities", demo: false };
+const analysis = () => ({ review_id: 1, overall_sentiment: "negative", needs_review: false, model_version: "v1", sentiment_source: "aspect-model", aspects: [{ aspect: "facilities", sentiment: "negative", score: .87, evidence: review.text }] });
+test("negative aspect score stays a model score and maps IDs", () => { const result = decodeAnalysis(analysis(), review); assert.equal(result.review_id, review.id); assert.equal(result.aspects[0].score, .87); assert.equal(result.aspects[0].sentiment, "negative"); });
+test("rejects wrong review, unknown aspect and nonfinite scores", () => { assert.throws(() => decodeAnalysis({ ...analysis(), review_id: 2 }, review)); assert.throws(() => decodeAnalysis({ ...analysis(), aspects: [{ aspect: "invented", sentiment: "positive", score: .9, evidence: "x" }] }, review)); const a = analysis(); a.aspects[0].score = NaN; assert.throws(() => decodeAnalysis(a, review)); });
+test("examples require human approval and preserve actual language", () => { const reply = { review_id: 1, analysis: analysis(), drafts: [{ id: "short", label: "Short", language: "en", text: "Thanks", owner_preview: null }], warnings: ["English fallback"], requires_approval: true, model_version: "v1" }; assert.equal(decodeExamples(reply, review).drafts[0].language, "en"); assert.throws(() => decodeExamples({ ...reply, requires_approval: false }, review)); });
+test("cache changes with business or text and stays bounded", () => { const key = reviewAnalysisKey(review, "http://127.0.0.1:8080", "English", "Business"); assert.notEqual(key, reviewAnalysisKey(review, "http://127.0.0.1:8080", "English", "New business")); const caches = Array.from({ length: 100 }, (_, i) => ({ key: String(i), savedAt: "now", analysis: decodeAnalysis(analysis(), review) })); assert.equal(saveAnalysisCache(caches, { ...caches[0], key }).length, 100); });
+test("Qwen provenance stays separate from classifier and follows the chosen draft", () => {
+  const generation = { status: "generated", source: "local-laptop-llm", model: "qwen3:0.6b", digest: "digest", prompt_version: "reply-v1", latency_ms: 200 };
+  const reply = { review_id: 1, analysis: analysis(), drafts: [{ id: "short", label: "Short", language: "en", text: "Thanks for the feedback about facilities.", owner_preview: null }], warnings: [], requires_approval: true, model_version: "classifier-v1", generation };
+  const decoded = decodeExamples(reply, review);
+  assert.equal(decoded.model_version, "classifier-v1"); assert.equal(decoded.drafts[0].generation?.model, "qwen3:0.6b");
+  assert.throws(() => decodeExamples({ ...reply, generation: { ...generation, source: "template" } }, review));
+});
+
+test("reload sends a fresh generation request rather than using saved examples", async () => {
+  const previousFetch = globalThis.fetch;
+  let calls = 0;
+  globalThis.fetch = async (_url, init) => {
+    const body = JSON.parse(String(init?.body));
+    assert.equal(body.regenerate, true); assert.equal(body.review.text, review.text); calls++;
+    return new Response(JSON.stringify({review_id:1,analysis:analysis(),drafts:[{id:"short",label:"Short",language:"en",text:"Thanks",owner_preview:null}],warnings:[],requires_approval:true,model_version:"v1"}), {status:200});
+  };
+  try {
+    await fetchReviewExamples(review,"http://127.0.0.1:8080","English","Business",undefined,{},true);
+    await fetchReviewExamples(review,"http://127.0.0.1:8080","English","Business",undefined,{},true);
+    assert.equal(calls,2);
+  } finally { globalThis.fetch = previousFetch; }
+});

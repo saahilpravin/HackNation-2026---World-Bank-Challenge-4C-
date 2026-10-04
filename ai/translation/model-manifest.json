@@ -1,0 +1,9 @@
+{
+  "model": "facebook/nllb-200-distilled-600M",
+  "revision": "f8d333a098d19b4fd9a8b18f94170487ad3f821d",
+  "license": "CC-BY-NC-4.0",
+  "model_card": "https://huggingface.co/facebook/nllb-200-distilled-600M",
+  "catalog": "src/data/nllb-languages.json",
+  "execution": "local laptop CPU",
+  "download": "First use requires internet; subsequent inference uses local files only."
+}

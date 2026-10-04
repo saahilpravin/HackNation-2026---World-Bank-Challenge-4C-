@@ -16,3 +16,12 @@ class Validation(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class BackendLanguageCodes(unittest.TestCase):
+    def test_iso_and_nllb_codes_are_resolved_without_changing_text(self):
+        original = "Une visite agréable."
+        row = validate({"text": original, "from": "fr", "to": "eng_Latn"})
+        self.assertEqual(row["from"], "French")
+        self.assertEqual(row["to"], "English")
+        self.assertEqual(row["text"], original)
+        with self.assertRaises(ValueError): validate({"text":original,"from":"unknown","to":"en"})

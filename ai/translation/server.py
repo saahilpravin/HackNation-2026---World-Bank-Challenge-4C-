@@ -88,7 +88,7 @@ def handler(engine, bind="127.0.0.1", port=8085, token=None):
                 return self.respond(403, {"error": "Preview origin not allowed."})
             if self.path != "/health":
                 return self.respond(404, {"error": "Not found."})
-            self.respond(200, {"ready": True, "model": MODEL, "source": "local-laptop-model"})
+            self.respond(200, {"ready": True, "model": MODEL, "source": "local-laptop-model", "revision": engine.provenance["revision"], "supportedLanguages": len(LANGUAGES)})
 
         def do_POST(self):
             if not self.permitted():

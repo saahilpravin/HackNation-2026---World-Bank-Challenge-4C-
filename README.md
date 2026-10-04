@@ -1,53 +1,24 @@
-# Lauda — local review insights and response translation
+# Lauda
 
-Lauda is a React Native / Expo SDK 57 business-owner workspace. Noor's Coffee Farm is the explicit sample business. The MVP connects the frontend from `codex/noor-ai-starter` to the versioned Java backend from `main`, preserving manual review responses and local NLLB translation.
+Local review insights and response translation for small business owners. React Native + Expo SDK 57 + TypeScript, with Java analysis, local NLLB translation and local Qwen3 4B generation. Noor’s Coffee Farm is the synthetic demo workspace.
 
-## Run the MVP
+**[Design document and 60-second technical demo script](docs/design-doc.md)** contains architecture, exact filenames, request sequencing, decisions, setup, offline limits, validation and next steps.
 
-Install Node dependencies (`npm ci`), Java 17+ and Maven. In the project root:
-
-```sh
-python3 scripts/setup-review-model.py
-python3 scripts/start-review-ai.py
-```
-
-In another terminal, start the app:
+## Run the prepared demo
 
 ```sh
-npm run web
+npm run demo:offline
 ```
 
-The frontend runs at http://localhost:8082 and the analysis API at http://127.0.0.1:8080. Open Insights to load findings automatically. Read supporting reviews, then write your own response and translate it.
+Open http://localhost:8087. Keep the local services running. Desktop displays an interactive phone frame; fresh inference runs on the laptop. Follow the design document for first-time dependency/model setup and builds.
 
-For NLLB, follow [translation setup](ai/translation/README.md), then start the actual service (the evaluation runner is not the service):
-
-```sh
-.venv-ai/bin/python ai/translation/server.py
-```
-
-Translation defaults to http://127.0.0.1:8085. First setup downloads model assets; runtime uses the cached model. For a phone, set the reachable analysis/translation addresses in Offline & AI and keep the local network connection to your laptop. Fresh inference is performed on the laptop, not inside the phone.
-
-## Offline laptop demonstration
-
-Build while online, keep local services running, and serve exported assets:
-
-```sh
-npx expo export --platform web --output-dir dist
-python3 scripts/serve-demo.py
-```
-
-Open http://localhost:8087. You can then disable internet and continue local analysis and translation with downloaded models. To restart Java without rebuilding/downloading, use `python3 scripts/start-review-ai.py --offline` after a successful build. Saved findings, translations, drafts and approved replies persist in native SQLite or browser localStorage. Replies are approved locally, not posted to external platforms.
-
-## Implementation and validation
-
-See [MVP payload mapping and integration plan](docs/MVP-INTEGRATION.md). The older [architecture review](docs/design/README.md) describes snapshots before this integration and is retained as historical context.
+## Checks
 
 ```sh
 npm run typecheck
 npm run lint
 npm test
-cd backend
-mvn test
+mvn -f backend/pom.xml test
 ```
 
-Large weights, Python environments and build outputs are excluded from Git. The app has Home, Reviews, Bookings, Insights and Help tabs. Review response generation is deliberately absent from the UI; the backend's reply-draft endpoint is retained but unused. Insights uses learned MiniLM classification and fixed, evidence-linked wording; it does not claim an LLM-generated summary or AI business score.
+Native data uses SQLite; web data uses localStorage. Models download once and stay outside Git. Owner approval saves locally, not to an external review platform. All 150 synthetic reviews are processed; usable findings and flagged reviews are shown separately.

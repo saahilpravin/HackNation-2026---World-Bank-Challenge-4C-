@@ -17,6 +17,12 @@ import java.util.List;
 public class ReviewController {
     private static final int MAX_REVIEWS = 500;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.lauda.api.service.InsightsLlmService llm;
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.lauda.api.service.ReviewAnalysisService analysis;
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.lauda.api.service.InsightsJobService jobs;
     private final ClassifierService classifier;
     private final ReplyService replies;
     private final InsightService insights;
@@ -29,6 +35,13 @@ public class ReviewController {
     public Dto.ReplyResponse replyDraft(@RequestBody Dto.ReplyRequest req) throws Exception {
         require(req != null && req.review() != null && req.review().text() != null
                 && !req.review().text().isBlank(), "review.text is required");
+        checkBatch(List.of(req.review()));
+        require(req.ownerLanguage() == null || req.ownerLanguage().length() <= 32, "owner language code is too long");
+        require(req.businessName() == null || req.businessName().length() <= 200, "business name is too long");
+        if(req.businessContext()!=null) {
+            require(req.businessContext().size()<=2,"Too many business facts");
+            for(var entry:req.businessContext().entrySet()) require(java.util.Set.of("experience","hours").contains(entry.getKey()) && entry.getValue()!=null && entry.getValue().length()<=300,"Invalid business context");
+        }
         return replies.draft(req);
     }
 
@@ -37,20 +50,34 @@ public class ReviewController {
         require(req != null, "request is required");
         checkBatch(req.reviews());
         List<Dto.Analysis> out = new ArrayList<>();
-        for (Dto.ReviewIn r : req.reviews()) out.add(classifier.analyze(r));
+        for (Dto.ReviewIn r : req.reviews()) out.add(analysis.analyze(r));
         return out;
     }
 
     @PostMapping("/insights")
     public Dto.InsightsResponse insights(@RequestBody Dto.InsightsRequest req) throws Exception {
         require(req != null, "request is required");
-        checkBatch(req.reviews());
-        return insights.build(req);
+        checkBatch(req.reviews()); checkSettings(req.settings());
+        return insights.withNarrative(req);
     }
 
+    @PostMapping("/insights/jobs")
+    public Dto.InsightJob startInsights(@RequestBody Dto.InsightsRequest req) throws Exception {
+        require(req!=null,"request is required"); checkBatch(req.reviews()); checkSettings(req.settings()); return jobs.start(req);
+    }
+    @PostMapping("/insights/summary")
+    public Dto.InsightsResponse summary(@RequestBody Dto.SummaryRequest req) {
+        require(req!=null,"request is required"); checkSettings(req.settings()); return insights.summarizeSnapshot(req);
+    }
+    private void checkSettings(Dto.SummarySettings settings) {
+        try { if(settings!=null) settings.normalized(); }
+        catch(IllegalArgumentException e) { throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage()); }
+    }
+    @GetMapping("/insights/jobs/{id}")
+    public Dto.InsightJob job(@PathVariable String id) { return jobs.get(id); }
     @GetMapping("/health")
     public java.util.Map<String, Object> health() {
-        return java.util.Map.of("status", "ok", "model_ready", classifier.ready());
+        return java.util.Map.of("status", "ok", "model_ready", classifier.ready(), "llm", llm.capabilities());
     }
 
     private static void checkBatch(List<Dto.ReviewIn> l) {
