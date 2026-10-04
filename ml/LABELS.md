@@ -1,1 +1,1 @@
-guide+, guide-, price_value+, price_value-, communication+, communication-, facilities+, facilities-, other+, other-
+access_transport+, access_transport-, guide+, guide-, price_value+, price_value-, communication+, communication-, facilities+, facilities-, other+, other-

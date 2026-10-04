@@ -16,10 +16,12 @@ import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
 import java.text.Normalizer;
+import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -155,37 +157,67 @@ public class ClassifierService {
     // ---------- 5. Decision logic: scores -> API response ----------
 
     public Dto.AnalyzeResponse analyze(Dto.AnalyzeRequest r) throws OrtException {
+        if (labels == null) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE, "model not loaded");
+        }
         String t = normalize(r.text());
         List<Dto.AspectHit> hits = new ArrayList<>();
 
-        // Too-short text is never classified (counted in characters, not words)
         if (t.codePointCount(0, t.length()) >= minChars) {
-            double[] p = scores(t);
+            double[] whole = scores(t);
+            List<String> parts = sentences(t);
+            double[][] partScores = new double[parts.size()][];
+            for (int k = 0; k < parts.size(); k++) {
+                partScores[k] = parts.size() == 1 ? whole : scores(parts.get(k));
+            }
             for (int j = 0; j < labels.length; j++) {
-                if (p[j] >= thr[j]) {
-                    String l = labels[j];
-                    hits.add(new Dto.AspectHit(
-                            l.substring(0, l.length() - 1),
-                            l.endsWith("+") ? "positive" : "negative",
-                            Math.round(p[j] * 100) / 100.0));
+                if (whole[j] < thr[j]) continue;
+                int best = 0;
+                for (int k = 1; k < parts.size(); k++) {
+                    if (partScores[k][j] > partScores[best][j]) best = k;
                 }
+                String l = labels[j];
+                hits.add(new Dto.AspectHit(
+                        l.substring(0, l.length() - 1),
+                        l.endsWith("+") ? "positive" : "negative",
+                        Math.round(whole[j] * 100) / 100.0,
+                        parts.get(best), "unspecified"));
             }
         }
 
         boolean pos = hits.stream().anyMatch(a -> a.sentiment().equals("positive"));
         boolean neg = hits.stream().anyMatch(a -> a.sentiment().equals("negative"));
         String overall;
-        if (pos || neg) {
-            overall = pos && neg ? "mixed" : pos ? "positive" : "negative";
-        } else if (r.rating() != null) {
-            overall = r.rating() >= 4 ? "positive" : r.rating() <= 2 ? "negative" : "neutral";
-        } else {
-            overall = "unknown";
+        if (pos || neg) overall = pos && neg ? "mixed" : pos ? "positive" : "negative";
+        else if (r.rating() != null) overall = r.rating() >= 4 ? "positive" : r.rating() <= 2 ? "negative" : "neutral";
+        else overall = "unknown";
+
+        boolean untested = r.language() != null && !testedLangs.contains(r.language());
+        return new Dto.AnalyzeResponse(r.id(), r.language(), r.rating(), hits, overall,
+                hits.isEmpty() || untested, version);
+    }
+
+    public boolean ready() { return labels != null; }
+
+    /** Embedding for any raw text (used by IssueMatcher). */
+    public float[] embedText(String raw) throws OrtException {
+        return embed(normalize(raw));
+    }
+
+    /** Splits a review into sentences, then into clauses at "but"-type words. */
+    static List<String> sentences(String t) {
+        BreakIterator bi = BreakIterator.getSentenceInstance(Locale.ROOT);
+        bi.setText(t);
+        List<String> out = new ArrayList<>();
+        for (int s = bi.first(), e = bi.next(); e != BreakIterator.DONE; s = e, e = bi.next()) {
+            for (String clause : t.substring(s, e).strip()
+                    .split("(?iu),?\\s+\\b(but|however|although|lakini|ingawa|ila|mais|pero|aber)\\b\\s+")) {
+                String x = clause.strip();
+                if (x.codePointCount(0, x.length()) >= 4) out.add(x);
+            }
         }
-
-        boolean untestedLanguage = r.language() != null && !testedLangs.contains(r.language());
-        boolean needsReview = hits.isEmpty() || untestedLanguage;
-
-        return new Dto.AnalyzeResponse(r.id(), hits, overall, needsReview, version);
+        if (out.isEmpty()) out.add(t);
+        return out;
     }
 }

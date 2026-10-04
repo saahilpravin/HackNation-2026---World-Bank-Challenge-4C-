@@ -9,52 +9,97 @@ import java.util.stream.Collectors;
 @Service
 public class InsightService {
 
-    // Fixed list of suggestions: the tool can only say what is written here.
-    private static final Map<String, String> FIXES = Map.of(
-        "guide", "Brief your guides on pacing and common visitor questions; consider a short script for the first 10 minutes.",
-        "coffee_tasting", "Lengthen the tasting and offer at least three samples; check roast freshness before each group.",
-        "price_value", "State exactly what the price includes in every booking message, and avoid extra charges on the day.",
-        "communication", "Confirm every booking within one day and send a short what-to-bring and arrival message.",
-        "facilities", "Add shade and seating near the start, and check the toilets before each visit.",
-        "access_transport", "Send a map pin, landmarks, and a driver-friendly description with each confirmation.",
-        "food", "Confirm dietary needs when booking and prepare a simple vegetarian option.",
-        "other", "Read these reviews yourself; they are general comments that do not fit one category.");
+    private record Ev(int reviewId, String language, Integer rating, String text, double score) {}
 
-    private static final Map<String, String> NAMES = Map.of(
-        "guide", "the guide", "coffee_tasting", "the coffee tasting", "price_value", "price and value",
-        "communication", "communication", "facilities", "facilities",
-        "access_transport", "getting to the farm", "food", "the food", "other", "general comments");
+    private final Phrasebook pb;
+    private final Translator translator;
 
-    public Dto.InsightsResponse build(List<Dto.AnalyzeResponse> reviews) {
-        int total = reviews.size();
-        // key = aspect|sentiment -> distinct review ids
-        Map<String, Set<Integer>> hits = new HashMap<>();
-        for (Dto.AnalyzeResponse r : reviews) {
-            for (Dto.AspectHit a : r.aspects()) {
-                hits.computeIfAbsent(a.aspect() + "|" + a.sentiment(), k -> new TreeSet<>()).add(r.reviewId());
-            }
-        }
-        List<Dto.SummaryPoint> praised = top(hits, "positive", total);
-        List<Dto.SummaryPoint> criticized = top(hits, "negative", total);
-        List<Dto.Suggestion> suggestions = criticized.stream()
-                .map(p -> new Dto.Suggestion(p.aspect(), FIXES.get(p.aspect())))
-                .toList();
-        return new Dto.InsightsResponse(total, praised, criticized, suggestions);
+    public InsightService(Phrasebook pb, Translator translator) {
+        this.pb = pb;
+        this.translator = translator;
     }
 
-    private List<Dto.SummaryPoint> top(Map<String, Set<Integer>> hits, String sentiment, int total) {
-        return hits.entrySet().stream()
-                .filter(e -> e.getKey().endsWith("|" + sentiment))
-                .sorted((a, b) -> b.getValue().size() - a.getValue().size())
-                .limit(3)
-                .map(e -> {
-                    String aspect = e.getKey().split("\\|")[0];
-                    int n = e.getValue().size();
-                    String verb = sentiment.equals("positive") ? "mention a positive experience with"
-                                                               : "raise a concern about";
-                    String text = n + " of " + total + " reviews " + verb + " " + NAMES.get(aspect) + ".";
-                    return new Dto.SummaryPoint(aspect, sentiment, n, total, text, new ArrayList<>(e.getValue()));
-                })
-                .collect(Collectors.toList());
+    public Dto.InsightsResponse build(Dto.InsightsRequest req) {
+        String requested = req.ownerLanguage();
+        String lang = pb.resolve(requested);
+        String note = (requested != null && !requested.equals(lang))
+                ? "No phrasebook for '" + requested + "' yet; showing English." : null;
+
+        List<Dto.AnalyzeResponse> all = req.reviews() == null ? List.of() : req.reviews();
+        List<Integer> unread = new ArrayList<>();
+        Map<String, List<Ev>> groups = new LinkedHashMap<>();        // sentiment|aspect|issue
+        Map<String, Set<Integer>> aspectIds = new HashMap<>();       // sentiment|aspect
+        int analysed = 0;
+
+        for (Dto.AnalyzeResponse r : all) {
+            // Guardrail: low-confidence or untested-language reviews are not counted; owner reads them.
+            if (r.needsReview()) { unread.add(r.reviewId()); continue; }
+            analysed++;
+            for (Dto.AspectHit a : r.aspects()) {
+                groups.computeIfAbsent(a.sentiment() + "|" + a.aspect() + "|" + a.issue(),
+                        k -> new ArrayList<>())
+                      .add(new Ev(r.reviewId(), r.language(), r.rating(), a.evidence(), a.score()));
+                aspectIds.computeIfAbsent(a.sentiment() + "|" + a.aspect(), k -> new TreeSet<>())
+                         .add(r.reviewId());
+            }
+        }
+
+        List<Dto.Finding> problems = findings(groups, "negative", analysed, lang, 5);
+        List<Dto.Finding> strengths = findings(groups, "positive", analysed, lang, 3);
+
+        Set<String> aspects = new TreeSet<>();
+        aspectIds.keySet().forEach(k -> aspects.add(k.split("\\|")[1]));
+        List<Dto.AspectCount> counts = aspects.stream().map(a -> new Dto.AspectCount(a,
+                aspectIds.getOrDefault("positive|" + a, Set.of()).size(),
+                aspectIds.getOrDefault("negative|" + a, Set.of()).size())).toList();
+
+        return new Dto.InsightsResponse(lang, all.size(), analysed, problems, strengths, counts,
+                unread, unread.isEmpty() ? null : pb.template(lang, "unread"), note);
+    }
+
+    private List<Dto.Finding> findings(Map<String, List<Ev>> groups, String sentiment,
+                                       int analysed, String lang, int limit) {
+        String sign = sentiment.equals("positive") ? "+" : "-";
+        return groups.entrySet().stream()
+            .filter(e -> e.getKey().startsWith(sentiment + "|"))
+            .sorted(Comparator
+                .comparingInt((Map.Entry<String, List<Ev>> e) -> e.getValue().size()).reversed()
+                .thenComparing(e -> -avg(e.getValue())))
+            .limit(limit)
+            .map(e -> {
+                String[] p = e.getKey().split("\\|");
+                String aspect = p[1], issue = p[2], label = aspect + sign;
+                List<Ev> evs = new ArrayList<>(e.getValue());
+                evs.sort(Comparator.comparingDouble(Ev::score).reversed());
+
+                int n = evs.size();
+                double share = analysed == 0 ? 0 : n / (double) analysed;
+                String level = (n >= 3 || share >= 0.15) ? "pattern" : n == 2 ? "repeated" : "single";
+                String title = pb.title(lang, label, issue);
+                String text = pb.template(lang, "finding_" + sentiment)
+                        .replace("{count}", String.valueOf(n))
+                        .replace("{total}", String.valueOf(analysed))
+                        .replace("{title}", title);
+
+                List<Dto.Quote> quotes = evs.stream().limit(3).map(ev -> new Dto.Quote(
+                        ev.reviewId(), ev.language(), ev.text(), translate(ev, lang), ev.rating()))
+                        .collect(Collectors.toList());
+
+                return new Dto.Finding(aspect, issue, title, n, analysed,
+                        Math.round(share * 100) / 100.0, level, pb.levelLabel(lang, level), text,
+                        sentiment.equals("negative") ? pb.action(lang, label, issue) : null,
+                        quotes,
+                        evs.stream().map(Ev::reviewId).sorted().toList());
+            }).toList();
+    }
+
+    private String translate(Ev ev, String toLang) {
+        if (ev.language() == null || ev.language().equals(toLang)) return ev.text();
+        try { return translator.translate(ev.text(), ev.language(), toLang); }
+        catch (Exception ex) { return null; }       // translation failure must never break the report
+    }
+
+    private static double avg(List<Ev> l) {
+        return l.stream().mapToDouble(Ev::score).average().orElse(0);
     }
 }

@@ -1,0 +1,54 @@
+{
+  "access_transport-": [
+    {"id": "road_condition", "examples": [
+      "the road was muddy and full of potholes",
+      "terrible bumpy road up to the farm",
+      "barabara ni mbovu na ina matope",
+      "our taxi almost got stuck in the mud"]},
+    {"id": "hard_to_find", "examples": [
+      "no signs, we got lost twice looking for the farm",
+      "very hard to find without a local guide",
+      "tulipotea njiani, hakuna alama za kuelekeza",
+      "the directions on the map were wrong"]},
+    {"id": "no_transport", "examples": [
+      "no taxis or buses go up there",
+      "we could not find a ride back to town",
+      "hakuna usafiri wa kurudi mjini"]}
+  ],
+  "guide-": [
+    {"id": "language_barrier", "examples": [
+      "i could not understand the guide's explanation",
+      "the guide did not speak our language",
+      "mwongozo hakuweza kuelewa tulichosema"]},
+    {"id": "rushed_or_unprepared", "examples": [
+      "the guide seemed rushed and unprepared",
+      "the guide was late and skipped parts of the tour"]},
+    {"id": "unfriendly", "examples": [
+      "the guide was rude and not welcoming",
+      "our guide ignored our questions"]}
+  ],
+  "price_value-": [
+    {"id": "too_expensive", "examples": [
+      "way too expensive for what we got",
+      "bei ni ghali sana kwa tulichopata"]},
+    {"id": "hidden_charges", "examples": [
+      "they charged extra for things not mentioned",
+      "the final price was higher than advertised"]}
+  ],
+  "facilities-": [
+    {"id": "toilets", "examples": [
+      "the toilets were dirty",
+      "no clean washroom available"]},
+    {"id": "no_shade_seating", "examples": [
+      "no shade and nowhere to sit",
+      "very few seats for older visitors"]}
+  ],
+  "communication-": [
+    {"id": "no_reply", "examples": [
+      "nobody replied to our booking message",
+      "the confirmation never arrived"]},
+    {"id": "unclear_info", "examples": [
+      "we got conflicting information about the time",
+      "no one told us what to bring"]}
+  ]
+}
