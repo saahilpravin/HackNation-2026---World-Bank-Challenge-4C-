@@ -119,7 +119,7 @@ function ReplyForm() {
     </Card>
     <Card><Heading>Customer-language response</Heading><Badge label={source === "manual" ? "Manually entered" : source === "local-laptop-model" ? "NLLB · Laptop model" : source === "on-device-model" ? "On-device model" : "Template / same-language text"} />
       <Field label={`Final response (${to})`} value={translated} onChange={v => { if (!busy && !translating) { setTranslated(v); setSource("manual"); setModelVersion(null); setLatencyMs(undefined); setKey(replyKey(draft, from, to)); setStatus(""); } }} multiline />
-      {modelVersion && <Muted>{modelVersion}{latencyMs !== undefined ? ` · ${(latencyMs / 1000).toFixed(1)} s` : ""}</Muted>}
+      {latencyMs !== undefined && <Muted>Translated in {(latencyMs / 1000).toFixed(1)} s</Muted>}
       <Muted>You can enter a translation yourself. Changing the draft or either language clears the previous version so you can check it again.</Muted>
       <Button label={busy ? "Saving…" : "Approve and save locally"} onPress={() => void approve()} disabled={busy || translating || !draft.trim() || !translated.trim() || key !== replyKey(draft, from, to)} />
     </Card>

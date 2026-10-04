@@ -37,7 +37,7 @@ class Engine:
         translated = []
         for item in inputs:
             with self.torch.inference_mode():
-                tokens = self.model.generate(**item, forced_bos_token_id=self.tokenizer.convert_tokens_to_ids(LANGUAGES[row["to"]]), max_new_tokens=256, num_beams=2)
+                tokens = self.model.generate(**item, forced_bos_token_id=self.tokenizer.convert_tokens_to_ids(LANGUAGES[row["to"]]), max_new_tokens=256, num_beams=1)
             if tokens[0][-1].item() != self.tokenizer.eos_token_id:
                 raise ValueError("Translation did not finish. Try shorter sentences.")
             translated.append(self.tokenizer.batch_decode(tokens, skip_special_tokens=True)[0])
