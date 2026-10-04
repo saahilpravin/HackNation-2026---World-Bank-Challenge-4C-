@@ -49,7 +49,9 @@ public class LocalLlmClient {
             if(!active) throw new BusyException();
             verify();
             String content=json.writeValueAsString(context); if(content.length()>18000) throw new IllegalArgumentException("Model context too large");
-            String body=json.writeValueAsString(Map.of("model",model,"stream",false,"think",false,"format",schema,"keep_alive","5m","options",Map.of("temperature",0,"num_ctx",4096,"num_predict",tokens),"messages",List.of(Map.of("role","system","content",prompt),Map.of("role","user","content",content))));
+            boolean fresh=context instanceof Map<?,?> values && values.containsKey("generation_variant");
+            var options=new java.util.HashMap<String,Object>(); options.put("temperature",fresh?.65:0); options.put("num_ctx",4096); options.put("num_predict",tokens); if(fresh) options.put("seed",java.util.concurrent.ThreadLocalRandom.current().nextInt(Integer.MAX_VALUE));
+            String body=json.writeValueAsString(Map.of("model",model,"stream",false,"think",false,"format",schema,"keep_alive","5m","options",options,"messages",List.of(Map.of("role","system","content",prompt),Map.of("role","user","content",content))));
             var response=http.send(HttpRequest.newBuilder(URI.create(endpoint+"/api/chat")).timeout(Duration.ofSeconds(timeout)).header("Content-Type","application/json").POST(HttpRequest.BodyPublishers.ofString(body)).build(),HttpResponse.BodyHandlers.ofString());
             if(response.statusCode()!=200 || response.body().length()>100000) throw new java.io.IOException("Local generation unavailable");
             return json.readTree(json.readTree(response.body()).path("message").path("content").asText());

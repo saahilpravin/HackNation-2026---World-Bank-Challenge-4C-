@@ -30,7 +30,7 @@ export function ReviewAnalysis({ review, onUse }: { review: Review; onUse: (draf
     if (examplesBusy) return;
     const controller = new AbortController(); examplesRequest.current = controller;
     setExamplesBusy(true); setError("");
-    try { const examples = await fetchReviewExamples(review, endpoint, language, business, controller.signal, context); if (!controller.signal.aborted && keyRef.current === key) await updateRef.current(d => ({ ...d, reviewAnalysisCache: saveAnalysisCache(d.reviewAnalysisCache, { key, savedAt: new Date().toISOString(), analysis: examples.analysis, examples }) })); }
+    try { const examples = await fetchReviewExamples(review, endpoint, language, business, controller.signal, context, true); if (saved?.examples && examples.generation?.status !== "generated") throw new Error("Qwen could not create fresh ideas. Your previous ideas are kept; try again when the local model is ready."); if (!controller.signal.aborted && keyRef.current === key) await updateRef.current(d => ({ ...d, reviewAnalysisCache: saveAnalysisCache(d.reviewAnalysisCache, { key, savedAt: new Date().toISOString(), analysis: examples.analysis, examples }) })); }
     catch(e) { if (!controller.signal.aborted) setError(e instanceof Error ? e.message : "Examples unavailable."); } finally { if (!controller.signal.aborted) setExamplesBusy(false); }
   };
   const analysis = saved?.analysis; const hits = [...(analysis?.aspects ?? [])].sort((a,b) => b.score - a.score || a.aspect.localeCompare(b.aspect)).slice(0,3);

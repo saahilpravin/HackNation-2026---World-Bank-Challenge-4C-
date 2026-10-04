@@ -86,3 +86,9 @@ Run `npm run ai:evaluate` against the ready local backend. Thirty authored held-
 Inspect meaning, tone, invented facts and editing effort manually, especially multilingual output and negation. Unit/API tests cover templates versus generated provenance, approval, input sanitization, duplicate/commitment rejection, persistent cache reuse, language failures, summary identity/preferences and review-order mapping. Frontend tests, typecheck, lint, backend tests and web export are required before release.
 
 For a physical offline demonstration: preload everything, disconnect internet, create a new uncached reply and change summary preferences. Also stop model/backend services and verify that saved content remains accessible. A live local HTTP test with offline model flags is not equivalent to physically testing an iPhone in airplane mode.
+
+## Phone demo and fresh response ideas
+
+The desktop web app opens in a centered, scrollable phone frame. On narrow phone screens it fills the screen normally; native layouts are unchanged. Navigation order is Home, Reviews, Bookings, Insights, Help.
+
+Generate/Reload response ideas sends `regenerate: true` to `/v1/reviews/reply-draft`. This bypasses saved generation, includes a fresh variant and prior wording in model context, and uses temperature 0.65 with a new sampling seed. Both drafts are checked against previous English wording and grounding rules, with one bounded retry. Unchanged normal API requests still use cached results. Failed reloads preserve the previous suggestions and never replace an owner draft. Three successive real local-model requests produced different short and detailed outputs.

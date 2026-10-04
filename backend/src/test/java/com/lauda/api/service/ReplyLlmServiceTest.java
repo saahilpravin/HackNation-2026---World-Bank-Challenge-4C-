@@ -15,6 +15,7 @@ class ReplyLlmServiceTest {
         Runtime() { super(true,"http://127.0.0.1:1","qwen3:0.6b","digest",1); }
         @Override public JsonNode generate(String prompt,Object context,Object schema,int tokens) throws Exception {
             calls++; this.context=context;
+            if(((Map<?,?>)context).containsKey("generation_variant") && !duplicate) return new ObjectMapper().valueToTree(Map.of("short","Thank you for sharing the difficulty with directions. We are sorry the farm was hard to find.","detailed","Thank you for explaining the unclear directions. We are sorry finding the farm was difficult, and we appreciate your helpful feedback about access."));
             return new ObjectMapper().readTree(duplicate ? "{\"short\":\"Thank you for your helpful feedback.\",\"detailed\":\"Thank you for your helpful feedback.\"}" : "{\"short\":\"Thank you for mentioning the unclear directions. We are sorry finding the farm was difficult.\",\"detailed\":\"Thank you for sharing your experience finding the farm. We are sorry the directions were unclear and that this made your visit difficult. Your feedback about access is appreciated.\"}");
         }
     }
@@ -33,6 +34,18 @@ class ReplyLlmServiceTest {
         assertEquals(result,restored.generate(request,uncertain(null))); assertEquals(1,runtime.calls);
         restored.generate(request("Changed directions review.","en","Test Farm"),uncertain(null)); assertEquals(2,runtime.calls);
         restored.generate(request("Changed directions review.","en","Other Farm"),uncertain(null)); assertEquals(3,runtime.calls);
+    }
+    @Test void regenerationBypassesCacheAndCallsModelOnEveryPress() throws Exception {
+        var runtime=new Runtime(); var service=new ReplyLlmService(runtime,new LocalOutputCache(temporary.resolve("fresh.json").toString()),null);
+        var original=request("Directions were unclear.","en","Test Farm");
+        var initial=service.generate(original,uncertain(null));
+        var fresh=new Dto.ReplyRequest(original.review(),original.ownerLanguage(),original.businessName(),Map.of(),true);
+        var next=service.generate(fresh,uncertain(null));
+        assertEquals(2,runtime.calls); assertEquals("generated",next.generation().status());
+        assertNotEquals(initial.drafts().get(0).text(),next.drafts().get(0).text());
+        assertNotEquals(initial.drafts().get(1).text(),next.drafts().get(1).text());
+        service.generate(fresh,uncertain(null)); assertEquals(4,runtime.calls);
+        assertEquals(next,service.generate(original,uncertain(null))); assertEquals(4,runtime.calls);
     }
     @Test void duplicateOutputRetriesOnceAndFallsBackHonestly() throws Exception {
         var runtime=new Runtime(); runtime.duplicate=true;

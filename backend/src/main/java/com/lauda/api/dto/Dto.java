@@ -36,8 +36,10 @@ public class Dto {
     public record ReplyRequest(ReviewIn review,
             @JsonProperty("owner_language") String ownerLanguage,
             @JsonProperty("business_name") String businessName,
-            @JsonProperty("business_context") Map<String,String> businessContext) {
-        public ReplyRequest(ReviewIn review,String owner,String business) { this(review,owner,business,Map.of()); }
+            @JsonProperty("business_context") Map<String,String> businessContext,
+            @JsonProperty("regenerate") boolean regenerate) {
+        public ReplyRequest(ReviewIn review,String owner,String business,Map<String,String> context) { this(review,owner,business,context,false); }
+        public ReplyRequest(ReviewIn review,String owner,String business) { this(review,owner,business,Map.of(),false); }
     }
     public record Generation(String status, String source, String model, String digest,
             @JsonProperty("prompt_version") String promptVersion, @JsonProperty("latency_ms") long latencyMs) {}

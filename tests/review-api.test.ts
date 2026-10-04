@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { decodeAnalysis, decodeExamples, reviewAnalysisKey, saveAnalysisCache } from "../src/ai/review-api.ts";
+import { decodeAnalysis, decodeExamples, fetchReviewExamples, reviewAnalysisKey, saveAnalysisCache } from "../src/ai/review-api.ts";
 import type { Review } from "../src/data/types.ts";
 const review: Review = { id: "custom-id", guest: "Guest", rating: 2, text: "Poor facilities", language: "English", theme: "facilities", demo: false };
 const analysis = () => ({ review_id: 1, overall_sentiment: "negative", needs_review: false, model_version: "v1", sentiment_source: "aspect-model", aspects: [{ aspect: "facilities", sentiment: "negative", score: .87, evidence: review.text }] });
@@ -14,4 +14,19 @@ test("Qwen provenance stays separate from classifier and follows the chosen draf
   const decoded = decodeExamples(reply, review);
   assert.equal(decoded.model_version, "classifier-v1"); assert.equal(decoded.drafts[0].generation?.model, "qwen3:0.6b");
   assert.throws(() => decodeExamples({ ...reply, generation: { ...generation, source: "template" } }, review));
+});
+
+test("reload sends a fresh generation request rather than using saved examples", async () => {
+  const previousFetch = globalThis.fetch;
+  let calls = 0;
+  globalThis.fetch = async (_url, init) => {
+    const body = JSON.parse(String(init?.body));
+    assert.equal(body.regenerate, true); assert.equal(body.review.text, review.text); calls++;
+    return new Response(JSON.stringify({review_id:1,analysis:analysis(),drafts:[{id:"short",label:"Short",language:"en",text:"Thanks",owner_preview:null}],warnings:[],requires_approval:true,model_version:"v1"}), {status:200});
+  };
+  try {
+    await fetchReviewExamples(review,"http://127.0.0.1:8080","English","Business",undefined,{},true);
+    await fetchReviewExamples(review,"http://127.0.0.1:8080","English","Business",undefined,{},true);
+    assert.equal(calls,2);
+  } finally { globalThis.fetch = previousFetch; }
 });
