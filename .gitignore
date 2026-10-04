@@ -40,8 +40,24 @@ yarn-error.*
 /ios
 /android
 
+<<<<<<< HEAD
 # Local AI experiments (never commit weights or environment)
 .venv-ai/
 .ai-cache/
 ai/translation/results/
 __pycache__/
+=======
+# Python
+ml/.venv/
+__pycache__/
+.ipynb_checkpoints/
+
+# Java
+backend/target/
+
+# Big model files: decide deliberately
+ml/artifacts/*.onnx
+ml/artifacts/emb_*.npy
+ml/artifacts/encoder/*.onnx
+ml/data/yelp/
+>>>>>>> 0ddf667cadcb1e45c7ba50c502bbed10839797f4

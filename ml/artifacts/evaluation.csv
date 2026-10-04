@@ -1,0 +1,48 @@
+﻿id,text,language,source,expected,predicted,missed,extra,top_label,top_score,exact,needs_review
+seed-11,Update: easy to find and the road was fine,en,synthetic,access_transport+,access_transport+,,,access_transport+,0.995,True,False
+seed-21,Went with my family. cheap for such a rich experience.,en,synthetic,price_value+,price_value+|price_value-,,price_value-,price_value+,0.927,False,False
+seed-25,Quick review: plenty of seats and clean washrooms!,en,synthetic,facilities+,facilities+,,,facilities+,0.968,True,False
+seed-41,Went with my family. the toilets were clean and there was shade to sit in,en,synthetic,facilities+,facilities+|facilities-|other+,,facilities-|other+,facilities+,0.983,False,False
+seed-50,Our guide seemed bored and rushed,en,synthetic,guide-,guide-,,,guide-,0.976,True,False
+seed-58,Update: the site was dirty and neglected!,en,synthetic,facilities-,facilities-,,,facilities-,0.862,True,False
+seed-61,Loved the local snacks they served!,en,synthetic,food+,food+|other+,,other+,food+,0.944,False,False
+seed-62,"Honestly, the food was cold and bland.",en,synthetic,food-,coffee_tasting-|food-,,coffee_tasting-,food-,0.989,False,False
+seed-65,"Quick review: great storyteller, our guide",en,synthetic,guide+,guide+,,,guide+,0.972,True,False
+seed-69,Quick review: fair price and nothing hidden,en,synthetic,price_value+,price_value+,,,price_value+,0.991,True,False
+seed-73,Quick review: plenty of seats and clean washrooms.,en,synthetic,facilities+,facilities+,,,facilities+,0.976,True,False
+seed-81,"Overall, great storyteller, our guide Thanks.",en,synthetic,guide+,guide+,,,guide+,0.991,True,False
+seed-82,Quick review: i could not understand the guide at all,en,synthetic,guide-,guide-,,,guide-,0.995,True,False
+seed-88,We visited in July. no one told us what to bring.,en,synthetic,communication-,communication-,,,communication-,0.592,True,False
+seed-96,Quick review: would not recommend,en,synthetic,other-,,other-,,other-,0.339,False,True
+seed-106,Went with my family. very few seats for older visitors.,en,synthetic,facilities-,facilities-,,,facilities-,0.913,True,False
+seed-108,"Honestly, the road was terrible and we got lost",en,synthetic,access_transport-,,access_transport-,,other-,0.229,False,True
+seed-125,Loved the local snacks they served,en,synthetic,food+,food+,,,food+,0.981,True,False
+seed-139,The directions were spot on and parking was easy Just my opinion.,en,synthetic,access_transport+,access_transport+,,,access_transport+,0.876,True,False
+seed-143,"Honestly, highly recommend to anyone visiting Ok.",en,synthetic,other+,guide+|other-,other+,guide+|other-,other-,0.632,False,False
+seed-158,"Honestly, the snacks ran out before we got any",en,synthetic,food-,food-,,,food-,0.982,True,False
+seed-161,"Overall, our guide was friendly and knew everything about coffee.",en,synthetic,guide+,coffee_tasting+|guide+,,coffee_tasting+,guide+,0.989,False,False
+seed-166,"Overall, way too expensive for what we got",en,synthetic,price_value-,price_value-,,,price_value-,0.997,True,False
+seed-175,"Overall, a memorable day out",en,synthetic,other+,other+,,,other+,0.989,True,False
+seed-181,Totally worth every shilling,en,synthetic,price_value+,price_value+,,,price_value+,0.992,True,False
+seed-185,Update: the facilities were spotless Just my opinion.,en,synthetic,facilities+,facilities+,,,facilities+,0.98,True,False
+seed-195,"Update: best cup of coffee of the whole trip, but the rain ruined the day!",en,synthetic,coffee_tasting+|other-,coffee_tasting+|other-,,,other-,0.832,True,False
+seed-206,"Went with my family. very clear instructions before the visit, but the roasting demo was skipped",en,synthetic,coffee_tasting-|communication+,coffee_tasting-|communication+,,,communication+,0.642,True,False
+seed-219,"Quick review: the road was terrible and we got lost, but the host answered our messages within minutes",en,synthetic,access_transport-|communication+,communication+,access_transport-,,communication+,0.699,False,False
+seed-225,"Quick review: simple to reach by taxi, but the tasting was too short Ok.",en,synthetic,access_transport+|coffee_tasting-,access_transport+|coffee_tasting-,,,coffee_tasting-,0.825,True,False
+seed-227,"Honestly, we waited ages for food and we got conflicting information about the time!",en,synthetic,communication-|food-,communication-|food-,,,food-,0.964,True,False
+seed-228,"Honestly, our guide seemed bored and rushed, but a memorable day out!",en,synthetic,guide-|other+,guide-,other+,,guide-,0.831,False,False
+seed-238,We visited in July. the guide was rude to some of the group and we got conflicting information about the time,en,synthetic,communication-|guide-,communication-|guide-,,,guide-,0.983,True,False
+seed-249,We visited in July. the guide made the whole visit fun and felt safe and well organised.,en,synthetic,facilities+|guide+,guide+|price_value+,facilities+,price_value+,guide+,0.945,False,False
+seed-252,We visited in July. lunch was tiny and not what we ordered and i could not understand the guide at all!,en,synthetic,food-|guide-,food-|guide-,,,guide-,0.907,True,False
+seed-257,We visited in July. the toilets were clean and there was shade to sit in and great tea and fresh fruit!,en,synthetic,facilities+|food+,facilities+|other+,food+,other+,facilities+,0.77,False,False
+seed-259,"Honestly, the guide was late and unprepared and the toilets were dirty",en,synthetic,facilities-|guide-,facilities-|guide-,,,guide-,0.903,True,False
+seed-282,Went with my family. it was too crowded for us and very hard to find without a local,en,synthetic,access_transport-|other-,other-,access_transport-,,other-,0.741,False,False
+seed-293,We visited in July. poor value for money and nobody replied to our booking message,en,synthetic,communication-|price_value-,communication-|other-|price_value-,,other-,communication-,0.892,False,False
+seed-294,No taxis would take us up the hill and we only got one tiny sample to try,en,synthetic,access_transport-|coffee_tasting-,coffee_tasting-,access_transport-,,coffee_tasting-,0.813,False,False
+seed-316,"Went with my family. great tea and fresh fruit, but very few seats for older visitors Ok.",en,synthetic,facilities-|food+,food+,facilities-,,food+,0.794,False,False
+seed-319,"Overpriced for a short visit, but the guide made the whole visit fun!",en,synthetic,guide+|price_value-,guide+|guide-|price_value-,,guide-,guide+,0.893,False,False
+seed-333,Went with my family. far from town with no clear signs and the meal was disappointing Thanks.,en,synthetic,access_transport-|food-,food-,access_transport-,,food-,0.728,False,False
+seed-337,"We visited in July. the guide could not answer simple questions, but the price was more than reasonable Ok.",en,synthetic,guide-|price_value+,guide-|price_value+|price_value-,,price_value-,price_value+,0.959,False,False
+seed-342,Nothing to say really..,en,synthetic,,,,,facilities-,0.202,True,True
+seed-346,asdf qwerty..,en,synthetic,,,,,guide+,0.05,True,True
+seed-349,"Selling phone cases, DM me for prices...",en,synthetic,,,,,price_value+,0.223,True,True
