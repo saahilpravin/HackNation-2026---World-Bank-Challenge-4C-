@@ -66,3 +66,7 @@ Run `npm run translate` from this folder. It installs missing Python dependencie
 See [Multilingual review insights](docs/MULTILINGUAL-INSIGHTS.md) for the local NLLB-to-classifier pipeline, batch progress, cache and offline operation.
 
 The [visual review brief](docs/INSIGHT-VISUAL-DESIGN.md) maps the backend payload to the mobile charts and explains the local Qwen summary. After one-time setup, `npm run ai:llm`, `npm run translate:offline` and `npm run ai:backend` start the local AI services in separate terminals.
+
+## Local Qwen replies and customized Insights
+
+See [implementation and offline setup](docs/LOCAL-QWEN-IMPLEMENTATION.md), [validation](docs/QWEN-VALIDATION-REPORT.md), [Lovable migration](docs/LOVABLE-MIGRATION.md), and the [Lovable starter prompt](docs/LOVABLE-STARTER-PROMPT.md). After one-time preparation and builds, run `npm run demo:offline`.
