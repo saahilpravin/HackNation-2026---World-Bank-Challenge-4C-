@@ -22,3 +22,6 @@ mvn -f backend/pom.xml test
 ```
 
 Native data uses SQLite; web data uses localStorage. Models download once and stay outside Git. Owner approval saves locally, not to an external review platform. All 150 synthetic reviews are processed; usable findings and flagged reviews are shown separately.
+
+## Disclaimer
+Startup for the AI Service, the Java implementation, and the actual web component had to be separated for deployment so there may be a waiting period for the full app to load.
