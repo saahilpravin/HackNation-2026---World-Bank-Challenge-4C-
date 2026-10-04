@@ -51,3 +51,8 @@ mvn test
 ```
 
 Large weights, Python environments and build outputs are excluded from Git. The app has Home, Reviews, Bookings, Insights and Help tabs. Review response generation is deliberately absent from the UI; the backend's reply-draft endpoint is retained but unused. Insights uses learned MiniLM classification and fixed, evidence-linked wording; it does not claim an LLM-generated summary or AI business score.
+
+## Next integration plans
+
+- [Review gauges, sentiment, example responses and dashboard payload mapping](docs/REVIEW-AND-INSIGHTS-INTEGRATION-PLAN.md)
+- [Offline LLM preparation and Java backend integration](docs/OFFLINE-LLM-IMPLEMENTATION-PLAN.md)
