@@ -3,7 +3,7 @@ Build AI that works where connectivity, devices and infrastructure are constrain
 
 
 ## Lauda mobile app
-React Native + Expo SDK 57 + TypeScript + Expo Router. Four tabs: Home, Reviews, Bookings, Insights. Secondary routes cover onboarding, profile, offline status, review reading/replies, manual booking entry/edits and insight evidence.
+React Native + Expo SDK 57 + TypeScript + Expo Router. Five tabs: Home, Reviews, Bookings, Insights, Help. Secondary routes cover onboarding, profile, offline status, review reading/replies, manual booking entry/edits and insight evidence.
 
 ```sh
 npm ci
@@ -17,7 +17,7 @@ npm test
 
 Use a development build if your installed Expo Go does not support this SDK. No secrets, login or backend are needed. First install/load requires internet; native data is retained in SQLite on the device. Web preview uses browser localStorage.
 
-**Review generation is currently authored examples; feedback findings use local rules.** NLLB provides real translation on the connected laptop. Sample language variants and saved records work locally. Replies require human approval and stay on the device; nothing is posted externally. See [team ownership and demo guide](docs/TEAM.md) for remaining work and limitations.
+**Review replies remain authored examples; review insights now connect to the teammate’s local MiniLM classifier and optional Qwen small language model.** See [local integration and offline demo instructions](docs/LOCAL-INTEGRATION.md). NLLB provides real translation on the connected laptop. Sample language variants and saved records work locally. Replies require human approval and stay on the device; nothing is posted externally. See [team ownership and demo guide](docs/TEAM.md) for remaining work and limitations.
 
 If Metro reports too many file watchers on macOS, use `CI=1 npm start` temporarily (restart the server after edits) or install Watchman from its official distribution.
 
