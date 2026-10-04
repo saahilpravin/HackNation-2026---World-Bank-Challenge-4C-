@@ -20,7 +20,7 @@ export function languageCode(language = "English"): string {
   return code ? known[code] ?? code : language;
 }
 export function insightsKey(reviews: Review[], ownerLanguage: string, endpoint: string): string {
-  return JSON.stringify(["v3-nllb-insights", normalizeEndpoint(endpoint), languageCode(ownerLanguage), [...reviews].sort((a, b) => a.id.localeCompare(b.id)).map(r => [r.id, r.text, r.language ? languageCode(r.language) : "unknown", r.rating, r.date ?? null])]);
+  return JSON.stringify(["v4-overview-insights", normalizeEndpoint(endpoint), languageCode(ownerLanguage), [...reviews].sort((a, b) => a.id.localeCompare(b.id)).map(r => [r.id, r.text, r.language ? languageCode(r.language) : "unknown", r.rating, r.date ?? null])]);
 }
 export function insightsPayload(reviews: Review[], ownerLanguage: string) {
   if (!reviews.length || reviews.length > 500 || new Set(reviews.map(r => r.id)).size !== reviews.length) throw new Error("Choose 1–500 reviews with unique IDs.");

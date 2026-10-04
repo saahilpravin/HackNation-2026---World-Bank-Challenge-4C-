@@ -12,23 +12,25 @@ class InsightsLlmServiceTest {
         var finding = new Dto.Finding("guide", "Tour guide", 1, 1, 1, null, null, "Praise", null, List.of(new Dto.Quote(1,"en",5,"Great guide.")), List.of(1));
         return new Dto.InsightsResponse(new Dto.Meta(1,1,0,"en","v1",null), null, new Dto.Qualitative(List.of(),List.of(finding)), new Dto.Attention(List.of(),null));
     }
-    @Test void rejectsInventedEvidenceAndAspects() throws Exception {
+    @Test void rejectsInventedCountsMissingThemesAndInjectedStructure() throws Exception {
         var service = new InsightsLlmService(false,"http://127.0.0.1:11434","qwen3:0.6b","digest",1);
-        var context = List.of(Map.<String,Object>of("aspect","guide","polarity","positive","review_ids",List.of(1),"quotes",List.of("Great guide.")));
         var json = new ObjectMapper();
-        assertThrows(IllegalArgumentException.class, () -> service.validate(json.readTree("{\"summary\":\"Good\",\"aspect_notes\":[{\"aspect\":\"guide\",\"polarity\":\"positive\",\"text\":\"Praise\",\"review_ids\":[99]}]}"),context,0));
-        assertThrows(IllegalArgumentException.class, () -> service.validate(json.readTree("{\"summary\":\"Good\",\"aspect_notes\":[{\"aspect\":\"food\",\"polarity\":\"positive\",\"text\":\"Praise\",\"review_ids\":[1]}]}"),context,0));
-        var two = List.of(Map.<String,Object>of("aspect","guide","polarity","positive","review_ids",List.of(1,2),"quotes",List.of("First quote","Second quote")));
-        assertThrows(IllegalArgumentException.class, () -> service.validate(json.readTree("{\"summary\":\"Good\",\"aspect_notes\":[{\"aspect\":\"guide\",\"polarity\":\"positive\",\"text\":\"Second quote\",\"review_ids\":[1]}]}"),two,0));
+        for(String invalid : List.of(
+            "{\"summary\":\"Tour guide receives praise from 99 visitors with excellent overall reviews.\"}",
+            "{\"summary\":\"Food and refreshments receive praise. Visitors mention concerns about facilities.\"}",
+            "{\"summary\":\"Tour guide receives praise in these reviews. No clear concerns were detected.\",\"aspect_notes\":[]}"))
+            assertThrows(IllegalArgumentException.class, () -> service.validateSummary(json.readTree(invalid),List.of("Tour guide"),List.of()));
         assertEquals("disabled",service.summarize(base()).status());
         assertThrows(IllegalArgumentException.class, () -> new InsightsLlmService(true,"http://example.com","model","digest",1));
     }
-    @Test void localGenerationCachesAndKeepsEvidenceIds() throws Exception {
+    @Test void localGenerationCachesAndKeepsMeasuredScope() throws Exception {
         var server = HttpServer.create(new InetSocketAddress("127.0.0.1",0),0); var calls = new AtomicInteger();
         server.createContext("/api/tags", exchange -> { var bytes = "{\"models\":[{\"name\":\"qwen3:0.6b\",\"digest\":\"digest\"}]}".getBytes(); exchange.sendResponseHeaders(200,bytes.length); exchange.getResponseBody().write(bytes); exchange.close(); });
-        server.createContext("/api/chat", exchange -> { calls.incrementAndGet(); var request = new ObjectMapper().readTree(exchange.getRequestBody()); assertFalse(request.path("think").asBoolean()); assertFalse(request.path("stream").asBoolean()); assertEquals(0,request.path("options").path("temperature").intValue()); var content="{\"summary\":\"Among analysed reviews, the guide is praised.\",\"aspect_notes\":[{\"aspect\":\"guide\",\"polarity\":\"positive\",\"text\":\"Great guide.\",\"review_ids\":[1]}]}"; var bytes=new ObjectMapper().writeValueAsBytes(Map.of("message",Map.of("content",content))); exchange.sendResponseHeaders(200,bytes.length); exchange.getResponseBody().write(bytes); exchange.close(); });
+        server.createContext("/api/chat", exchange -> { calls.incrementAndGet(); var request = new ObjectMapper().readTree(exchange.getRequestBody()); assertFalse(request.path("think").asBoolean()); assertFalse(request.path("stream").asBoolean()); assertEquals(0,request.path("options").path("temperature").intValue()); var content="{\"summary\":\"Tour guide receives praise in these reviews. No clear concern themes were detected.\"}"; var bytes=new ObjectMapper().writeValueAsBytes(Map.of("message",Map.of("content",content))); exchange.sendResponseHeaders(200,bytes.length); exchange.getResponseBody().write(bytes); exchange.close(); });
         server.start();
-        try { var service = new InsightsLlmService(true,"http://127.0.0.1:"+server.getAddress().getPort(),"qwen3:0.6b","digest",2); var result=service.summarize(base()); assertEquals("generated",result.status()); assertEquals(List.of(1),result.aspectNotes().get(0).reviewIds()); assertEquals(result,service.summarize(base())); assertEquals(1,calls.get()); }
+        try { var service = new InsightsLlmService(true,"http://127.0.0.1:"+server.getAddress().getPort(),"qwen3:0.6b","digest",2); var result=service.summarize(base()); assertEquals("generated",result.status()); assertTrue(result.aspectNotes().isEmpty()); assertTrue(result.summary().startsWith("Across 1 reviews, 1 have usable aspect findings and 0 need checking.")); assertEquals(result,service.summarize(base())); assertEquals(1,calls.get());
+            var changedScope = new Dto.InsightsResponse(new Dto.Meta(2,1,1,"en","v1",null),null,base().qualitative(),new Dto.Attention(List.of(2),null));
+            var changed = service.summarize(changedScope); assertTrue(changed.summary().startsWith("Across 2 reviews, 1 have usable aspect findings and 1 need checking.")); assertEquals(2,calls.get()); }
         finally { server.stop(0); }
     }
     @Test void unavailableRuntimeAndNoEvidencePreserveBaseFindings() throws Exception {
