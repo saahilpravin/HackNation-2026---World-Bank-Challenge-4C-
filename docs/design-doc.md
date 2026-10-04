@@ -228,38 +228,7 @@ Three-person split: **AI/model owner** labels a held-out real corpus, measures p
 
 External ingestion, normalized persistence, durable jobs, a standalone installed build and phone-local inference are roadmap items, not implemented features. Yelp preparation uses `scripts/prepare-yelp-evaluation.py`; its output is ignored locally. Review dataset/model licenses before distributing source reviews or weights. Public hosting needs authenticated HTTPS APIs or labeled saved fixtures; the current local server is not a service-worker-backed offline PWA.
 
-## 9. Optional Lovable migration
-
-Migration is prepared, not executed. Keep this repository as the working native/local baseline. Create a new Lovable client project using its generated framework, export/connect its new GitHub repository, then port the pure TypeScript contracts, language catalog and screen behavior. Rebuild native elements as accessible DOM components rather than copying the Expo package manifest.
-
-Run a local port on 8088, already listed in the development allowlists. Browser-side requests can reach the local Java/NLLB services; a hosted server’s localhost cannot reach a visitor’s laptop. Publishing the interface does not host Java, Python or Ollama. A hosted live demo needs deliberate HTTPS/authentication/origin configuration; a saved-fixture demo must be labeled. Offline web reopening needs a service worker/app-shell strategy and browser storage migrations, not just deployment.
-
-Starter brief: “Build Lauda with Home, Reviews, Bookings, Insights and Help in that order. Use a centered phone presentation on desktop. Preserve review IDs, searchable language controls, sentiment/aspect graphics, human-approved Qwen ideas, fresh Reload requests, NLLB translation, editable drafts and the matching-snapshot Insights customization. Show exact backend counts, not AI business scores. Keep last valid results on failure and saved state locally. No login, customer inbox, automatic posting or cloud AI substitution. Use the existing versioned API contracts and label synthetic demo data.”
-
-## 10. Technical demo script — 60 seconds
-
-126 spoken words. Rehearse once; use preloaded results so model latency does not consume the recording.
-
-| Time | Screen / action |
-|---|---|
-| 0–10 s | Home in the phone frame. |
-| 10–25 s | Insights: coverage, charts, paragraph, then evidence. |
-| 25–43 s | Review details: generated ideas, Reload, editor and translation. |
-| 43–60 s | Offline & AI; return to saved Insights. |
-
-> Lauda helps small tourism businesses understand multilingual reviews and prepare replies.
->
-> Our Expo and TypeScript interface stores reviews, bookings and drafts locally: SQLite on mobile, browser storage for this demo.
->
-> The Java backend translates non-English reviews with local NLLB, then uses a trained MiniLM classifier to detect aspects and sentiment. Java calculates the chart numbers; local Qwen writes the overview from those findings and evidence.
->
-> Here, all 150 sample reviews are processed. Forty-eight need checking, rather than being silently omitted.
->
-> For a reply, Qwen produces short and detailed ideas. Reload requests fresh wording. The owner edits, translates and approves; nothing posts automatically.
->
-> Models download once, then run on this laptop without internet. Saved results persist. Phone-only inference is future work; this frame demonstrates the mobile interface.
-
-## 11. Reference and document policy
+## 9. Reference and document policy
 
 This file supersedes the previous 20 Markdown documents under `docs/`, including historical branch assessments and obsolete model plans. Git history retains those sources. `README.md` is the concise entry point; model/training/license documents adjacent to their code remain available. No runtime caches or owner state were removed by consolidation.
 
