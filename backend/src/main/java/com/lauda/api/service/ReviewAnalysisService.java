@@ -8,6 +8,7 @@ public class ReviewAnalysisService {
     private final ClassifierService classifier;
     private final ReviewTranslationService translator;
     public ReviewAnalysisService(ClassifierService classifier, ReviewTranslationService translator) { this.classifier=classifier; this.translator=translator; }
+    public String pipelineVersion() { return classifier.modelVersion()+"/"+translator.version(); }
     public Dto.Analysis analyze(Dto.ReviewIn original) throws Exception {
         if ("en".equals(original.language()) || "eng_Latn".equals(original.language())) return classifier.analyze(new Dto.ReviewIn(original.id(),original.text(),"en",original.rating(),original.date()));
         ReviewTranslationService.Output output;

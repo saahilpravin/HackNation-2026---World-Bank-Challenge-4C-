@@ -195,6 +195,7 @@ public class ClassifierService {
                 hits.isEmpty() || untested, version);
     }
 
+    public String modelVersion() { return version; }
     public boolean ready() { return labels != null && session != null && tokenizer != null; }
 
     /** Embedding for any raw text (used by IssueMatcher). */

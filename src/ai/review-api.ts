@@ -3,10 +3,11 @@ import { languageCode, insightsPayload } from "./insights-api.ts";
 import { normalizeEndpoint } from "./laptop-translation.ts";
 export const aspectLabels: Record<string, string> = { guide: "Tour guide", price_value: "Price & value", communication: "Communication", facilities: "Facilities", access_transport: "Access & transport", food: "Food & drinks", other: "Other" };
 export type Analysis = { review_id: string; aspects: { aspect: string; sentiment: "positive" | "negative"; score: number; evidence: string }[]; overall_sentiment: string; sentiment_source: string; needs_review: boolean; model_version: string; translation?: { status: string; model_version: string; original_text: string; translated_text: string | null; error: string | null } };
-export type DraftExample = { id: string; label: string; language: string; text: string; owner_preview: string | null };
-export type ReplyExamples = { analysis: Analysis; drafts: DraftExample[]; warnings: string[]; requires_approval: true; model_version: string };
+export type Generation = { status: string; source: "local-laptop-llm" | "template"; model: string | null; digest: string | null; prompt_version: string; latency_ms: number };
+export type DraftExample = { id: string; label: string; language: string; text: string; owner_preview: string | null; generation?: Generation };
+export type ReplyExamples = { analysis: Analysis; drafts: DraftExample[]; warnings: string[]; requires_approval: true; model_version: string; generation?: Generation };
 export type ReviewAnalysisCache = { key: string; savedAt: string; analysis: Analysis; examples?: ReplyExamples };
-export function reviewAnalysisKey(review: Review, endpoint: string, ownerLanguage: string, business: string) { return JSON.stringify(["review-analysis-v2-nllb", normalizeEndpoint(endpoint), review.id, review.text, review.language, review.rating, review.date, ownerLanguage, business]); }
+export function reviewAnalysisKey(review: Review, endpoint: string, ownerLanguage: string, business: string, context?: Record<string, string>) { return JSON.stringify(["review-analysis-v4-qwen4b", normalizeEndpoint(endpoint), review.id, review.text, review.language, review.rating, review.date, ownerLanguage, business, context ?? {}]); }
 function requireValue(ok: unknown): asserts ok { if (!ok) throw new Error("The review service returned incompatible data. Saved results have not changed."); }
 function obj(v: unknown): Record<string, unknown> { requireValue(!!v && typeof v === "object" && !Array.isArray(v)); return v as Record<string, unknown>; }
 function str(v: unknown, max = 4000): string { requireValue(typeof v === "string" && v.length <= max); return v; }
@@ -27,8 +28,14 @@ export function decodeAnalysis(value: unknown, review: Review): Analysis {
 }
 export function decodeExamples(value: unknown, review: Review): ReplyExamples {
   const r = obj(value); requireValue(r.review_id === 1 && r.requires_approval === true && Array.isArray(r.drafts) && r.drafts.length > 0 && r.drafts.length <= 2 && Array.isArray(r.warnings) && r.warnings.length <= 10);
-  const drafts = r.drafts.map(v => { const d = obj(v); return { id: str(d.id, 32), label: str(d.label, 100), language: str(d.language, 32), text: str(d.text), owner_preview: d.owner_preview === null ? null : str(d.owner_preview) }; });
-  return { analysis: decodeAnalysis(r.analysis, review), drafts, warnings: r.warnings.map(v => str(v)), requires_approval: true, model_version: str(r.model_version, 200) };
+  let generation: Generation | undefined;
+  if (r.generation != null) {
+    const g = obj(r.generation), status = str(g.status), source = str(g.source);
+    requireValue(["generated", "disabled", "not-ready", "timeout", "invalid-output", "translation-failed", "busy"].includes(status) && ["local-laptop-llm", "template"].includes(source) && (status !== "generated" || source === "local-laptop-llm") && typeof g.latency_ms === "number" && Number.isInteger(g.latency_ms) && g.latency_ms >= 0 && g.latency_ms <= 3600000);
+    generation = { status, source: source as Generation["source"], model: g.model == null ? null : str(g.model), digest: g.digest == null ? null : str(g.digest), prompt_version: str(g.prompt_version), latency_ms: g.latency_ms };
+  }
+  const drafts = r.drafts.map(v => { const d = obj(v); return { id: str(d.id, 32), label: str(d.label, 100), language: str(d.language, 32), text: str(d.text), owner_preview: d.owner_preview === null ? null : str(d.owner_preview), ...(generation ? { generation } : {}) }; });
+  return { analysis: decodeAnalysis(r.analysis, review), drafts, warnings: r.warnings.map(v => str(v)), requires_approval: true, model_version: str(r.model_version, 200), ...(generation ? { generation } : {}) };
 }
 async function request(endpoint: string, route: string, body: unknown, signal?: AbortSignal): Promise<unknown> {
   const controller = new AbortController(); const abort = () => controller.abort(); signal?.addEventListener("abort", abort, { once: true }); if (signal?.aborted) abort(); const timer = setTimeout(abort, 120000);
@@ -37,5 +44,5 @@ async function request(endpoint: string, route: string, body: unknown, signal?: 
   finally { clearTimeout(timer); signal?.removeEventListener("abort", abort); }
 }
 export async function fetchReviewAnalysis(review: Review, endpoint: string, signal?: AbortSignal) { const result = await request(endpoint, "analyze", { reviews: insightsPayload([review], "English").reviews }, signal); requireValue(Array.isArray(result) && result.length === 1); return decodeAnalysis(result[0], review); }
-export async function fetchReviewExamples(review: Review, endpoint: string, ownerLanguage: string, business: string) { return decodeExamples(await request(endpoint, "reply-draft", { review: insightsPayload([review], ownerLanguage).reviews[0], owner_language: languageCode(ownerLanguage), business_name: business }), review); }
+export async function fetchReviewExamples(review: Review, endpoint: string, ownerLanguage: string, business: string, signal?: AbortSignal, context?: Record<string, string>) { return decodeExamples(await request(endpoint, "reply-draft", { review: insightsPayload([review], ownerLanguage).reviews[0], owner_language: languageCode(ownerLanguage), business_name: business, business_context: context ?? {} }, signal), review); }
 export function saveAnalysisCache(caches: ReviewAnalysisCache[] = [], item: ReviewAnalysisCache) { return [...caches.filter(c => c.key !== item.key), item].slice(-100); }

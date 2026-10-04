@@ -4,14 +4,21 @@ import languages from "../data/nllb-languages.json" with { type: "json" };
 
 export type Finding = { aspect: string; label: string; count: number; total: number; share: number; priority: string | null; priority_label: string | null; summary: string; action: string | null; quotes: { review_id: string; language: string | null; rating: number | null; text: string; original_text?: string | null; translation_model?: string | null }[]; review_ids: string[] };
 export type Narrative = { status: string; source: string; model: string; digest: string; prompt_version: string; latency_ms: number; summary: string | null; aspect_notes: { aspect: string; polarity: string; text: string; review_ids: string[] }[]; warnings: string[] };
+export type SummarySettings = { length: "brief" | "standard"; tone: "plain" | "professional"; focus: "balanced" | "praise" | "concerns"; language: string };
+export const defaultSummarySettings: SummarySettings = { length: "brief", tone: "professional", focus: "balanced", language: "en" };
+export function normalizeSummarySettings(value?: SummarySettings): SummarySettings {
+  if (!value || !["brief", "standard"].includes(value.length) || !["plain", "professional"].includes(value.tone) || !["balanced", "praise", "concerns"].includes(value.focus) || typeof value.language !== "string" || !value.language.trim() || value.language.length > 32) return defaultSummarySettings;
+  return value;
+}
 export type InsightsResult = {
+  snapshot_id?: string;
   narrative?: Narrative | null;
   meta: { total: number; analysed: number; unread: number; translated?: number; translation_failed?: number; owner_language: string; model_version: string; note: string | null };
   quantitative: { average_rating: number | null; rating_distribution: Record<string, number>; sentiment: Record<string, number>; languages: Record<string, number>; aspects: { aspect: string; label: string; positive: number; negative: number; share_negative: number }[]; trend: { month: string; count: number; average_rating: number | null; negative: number }[] };
   qualitative: { problems: Finding[]; strengths: Finding[] };
   attention: { unread_review_ids: string[]; note: string | null };
 };
-export type InsightsCache = { key: string; savedAt: string; result: InsightsResult };
+export type InsightsCache = { corpusKey?: string; settings?: SummarySettings; key: string; savedAt: string; result: InsightsResult };
 const aspectNames = new Set(["guide", "price_value", "communication", "facilities", "access_transport", "food", "other"]);
 export function languageCode(language = "English"): string {
   // Preserve unknown/unsupported codes rather than claiming their text is English.
@@ -19,12 +26,12 @@ export function languageCode(language = "English"): string {
   const known: Record<string, string> = { eng_Latn: "en", swh_Latn: "sw", fra_Latn: "fr", spa_Latn: "es", deu_Latn: "de", ita_Latn: "it", por_Latn: "pt", arb_Arab: "ar", zho_Hans: "zh", zho_Hant: "zho_Hant", jpn_Jpan: "ja" };
   return code ? known[code] ?? code : language;
 }
-export function insightsKey(reviews: Review[], ownerLanguage: string, endpoint: string): string {
-  return JSON.stringify(["v4-overview-insights", normalizeEndpoint(endpoint), languageCode(ownerLanguage), [...reviews].sort((a, b) => a.id.localeCompare(b.id)).map(r => [r.id, r.text, r.language ? languageCode(r.language) : "unknown", r.rating, r.date ?? null])]);
+export function insightsKey(reviews: Review[], ownerLanguage: string, endpoint: string, settings: SummarySettings = defaultSummarySettings): string {
+  return JSON.stringify(["v7-qwen4b-insights", normalizeSummarySettings(settings), normalizeEndpoint(endpoint), languageCode(ownerLanguage), [...reviews].sort((a, b) => a.id.localeCompare(b.id)).map(r => [r.id, r.text, r.language ? languageCode(r.language) : "unknown", r.rating, r.date ?? null])]);
 }
-export function insightsPayload(reviews: Review[], ownerLanguage: string) {
+export function insightsPayload(reviews: Review[], ownerLanguage: string, settings: SummarySettings = defaultSummarySettings) {
   if (!reviews.length || reviews.length > 500 || new Set(reviews.map(r => r.id)).size !== reviews.length) throw new Error("Choose 1–500 reviews with unique IDs.");
-  return { include_narrative: true, owner_language: languageCode(ownerLanguage), reviews: reviews.map((review, index) => ({ id: index + 1, text: review.text, language: review.language ? languageCode(review.language) : "unknown", rating: review.rating, date: review.date ?? null })) };
+  return { settings: normalizeSummarySettings(settings), include_narrative: true, owner_language: languageCode(ownerLanguage), reviews: [...reviews].sort((a, b) => a.id.localeCompare(b.id)).map((review, index) => ({ id: index + 1, text: review.text, language: review.language ? languageCode(review.language) : "unknown", rating: review.rating, date: review.date ?? null })) };
 }
 function requireValue(ok: unknown): asserts ok { if (!ok) throw new Error("The insight service returned an incompatible response. Your saved findings have not changed."); }
 function object(value: unknown): Record<string, unknown> { requireValue(value !== null && typeof value === "object" && !Array.isArray(value)); return value as Record<string, unknown>; }
@@ -40,7 +47,7 @@ export function decodeInsights(value: unknown, reviews: Review[]): InsightsResul
   const analysed = count(m.analysed, total), unread = count(m.unread, total); requireValue(analysed + unread === total);
   const translated = count(m.translated ?? 0, total), translationFailed = count(m.translation_failed ?? 0, unread);
   requireValue(translated + translationFailed <= total);
-  const id = (n: unknown) => { requireValue(typeof n === "number" && Number.isInteger(n) && n >= 1 && n <= reviews.length); return reviews[n - 1].id; };
+  const id = (n: unknown) => { requireValue(typeof n === "number" && Number.isInteger(n) && n >= 1 && n <= reviews.length); return [...reviews].sort((a, b) => a.id.localeCompare(b.id))[n - 1].id; };
   const ids = (v: unknown) => { const out = array(v, total).map(id); requireValue(new Set(out).size === out.length); return out; };
   const unreadIds = ids(att.unread_review_ids); requireValue(unreadIds.length === unread);
   const finding = (v: unknown): Finding => {
@@ -69,7 +76,10 @@ export function decodeInsights(value: unknown, reviews: Review[]): InsightsResul
     requireValue(status === "generated" || (summary === null && notes.length === 0));
     narrative = { status, source: text(n.source), model: text(n.model), digest: text(n.digest), prompt_version: text(n.prompt_version), latency_ms: count(n.latency_ms, 3600000), summary, aspect_notes: notes, warnings: array(n.warnings, 10).map(text) };
   }
+  const snapshotId = root.snapshot_id;
+  if (snapshotId != null) requireValue(typeof snapshotId === "string" && /^[a-f0-9]{64}$/.test(snapshotId));
   return {
+    ...(typeof snapshotId === "string" ? { snapshot_id: snapshotId } : {}),
     narrative,
     meta: { total, analysed, unread, translated, translation_failed: translationFailed, owner_language: text(m.owner_language), model_version: text(m.model_version), note: optionalText(m.note) },
     quantitative: { average_rating: rating(q.average_rating), rating_distribution: distribution, sentiment: counts(q.sentiment), languages: counts(q.languages),
@@ -87,7 +97,7 @@ function pause(signal?: AbortSignal) {
     signal?.addEventListener("abort", abort, { once: true }); if (signal?.aborted) abort();
   });
 }
-export async function fetchInsights(reviews: Review[], ownerLanguage: string, endpoint = "http://127.0.0.1:8080", signal?: AbortSignal, progress?: (value: InsightsProgress) => void): Promise<InsightsResult> {
+export async function fetchInsights(reviews: Review[], ownerLanguage: string, endpoint = "http://127.0.0.1:8080", signal?: AbortSignal, progress?: (value: InsightsProgress) => void, settings: SummarySettings = defaultSummarySettings): Promise<InsightsResult> {
   const origin = normalizeEndpoint(endpoint);
   const request = async (url: string, body?: unknown) => {
     const controller = new AbortController(); const abort = () => controller.abort();
@@ -102,7 +112,7 @@ export async function fetchInsights(reviews: Review[], ownerLanguage: string, en
       throw error;
     } finally { clearTimeout(timer); signal?.removeEventListener("abort", abort); }
   };
-  let job = await request(`${origin}/v1/insights/jobs`, insightsPayload(reviews, ownerLanguage));
+  let job = await request(`${origin}/v1/insights/jobs`, insightsPayload(reviews, ownerLanguage, settings));
   const jobId = text(job.id); requireValue(/^[a-zA-Z0-9-]{1,64}$/.test(jobId));
   while (true) {
     requireValue(job.id === jobId && job.total === reviews.length);
@@ -113,4 +123,19 @@ export async function fetchInsights(reviews: Review[], ownerLanguage: string, en
     if (status === "failed") throw new Error(typeof job.error === "string" ? job.error : "Local analysis failed; completed translations are retained.");
     await pause(signal); job = await request(`${origin}/v1/insights/jobs/${jobId}`);
   }
+}
+
+export async function fetchSummary(snapshotId: string, reviews: Review[], settings: SummarySettings, endpoint: string, signal?: AbortSignal): Promise<InsightsResult> {
+  if (!/^[a-f0-9]{64}$/.test(snapshotId)) throw new Error("Refresh reviews before customizing the summary.");
+  const controller = new AbortController(), abort = () => controller.abort();
+  signal?.addEventListener("abort", abort, { once: true }); if (signal?.aborted) abort();
+  const timer = setTimeout(abort, 120000);
+  try {
+    const response = await fetch(`${normalizeEndpoint(endpoint)}/v1/insights/summary`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ snapshot_id: snapshotId, settings: normalizeSummarySettings(settings) }), signal: controller.signal });
+    if (!response.ok) throw new Error(response.status === 404 ? "Saved analysis expired. Refresh reviews to customize the summary." : "Summary unavailable. Your saved findings remain here.");
+    const result = decodeInsights(await response.json(), reviews);
+    if (result.snapshot_id !== snapshotId) throw new Error("Summary did not match the saved analysis.");
+    return result;
+  } catch (e) { if (e instanceof TypeError || (e instanceof Error && e.name === "AbortError")) throw new Error("Cannot reach the local model. Your saved summary remains available."); throw e; }
+  finally { clearTimeout(timer); signal?.removeEventListener("abort", abort); }
 }

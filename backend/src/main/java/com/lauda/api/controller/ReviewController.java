@@ -38,6 +38,10 @@ public class ReviewController {
         checkBatch(List.of(req.review()));
         require(req.ownerLanguage() == null || req.ownerLanguage().length() <= 32, "owner language code is too long");
         require(req.businessName() == null || req.businessName().length() <= 200, "business name is too long");
+        if(req.businessContext()!=null) {
+            require(req.businessContext().size()<=2,"Too many business facts");
+            for(var entry:req.businessContext().entrySet()) require(java.util.Set.of("experience","hours").contains(entry.getKey()) && entry.getValue()!=null && entry.getValue().length()<=300,"Invalid business context");
+        }
         return replies.draft(req);
     }
 
@@ -53,13 +57,21 @@ public class ReviewController {
     @PostMapping("/insights")
     public Dto.InsightsResponse insights(@RequestBody Dto.InsightsRequest req) throws Exception {
         require(req != null, "request is required");
-        checkBatch(req.reviews());
+        checkBatch(req.reviews()); checkSettings(req.settings());
         return insights.withNarrative(req);
     }
 
     @PostMapping("/insights/jobs")
     public Dto.InsightJob startInsights(@RequestBody Dto.InsightsRequest req) throws Exception {
-        require(req!=null,"request is required"); checkBatch(req.reviews()); return jobs.start(req);
+        require(req!=null,"request is required"); checkBatch(req.reviews()); checkSettings(req.settings()); return jobs.start(req);
+    }
+    @PostMapping("/insights/summary")
+    public Dto.InsightsResponse summary(@RequestBody Dto.SummaryRequest req) {
+        require(req!=null,"request is required"); checkSettings(req.settings()); return insights.summarizeSnapshot(req);
+    }
+    private void checkSettings(Dto.SummarySettings settings) {
+        try { if(settings!=null) settings.normalized(); }
+        catch(IllegalArgumentException e) { throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage()); }
     }
     @GetMapping("/insights/jobs/{id}")
     public Dto.InsightJob job(@PathVariable String id) { return jobs.get(id); }

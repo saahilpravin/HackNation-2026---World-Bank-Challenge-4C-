@@ -15,6 +15,8 @@ public class InsightService {
     private ReviewAnalysisService analysis;
     @org.springframework.beans.factory.annotation.Autowired
     private InsightsLlmService llm;
+    @org.springframework.beans.factory.annotation.Autowired private LocalOutputCache outputCache;
+    private final com.fasterxml.jackson.databind.ObjectMapper json=new com.fasterxml.jackson.databind.ObjectMapper().configure(com.fasterxml.jackson.databind.SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS,true);
 
     public InsightService(ClassifierService classifier, Texts texts) {
         this.classifier = classifier;
@@ -32,6 +34,8 @@ public class InsightService {
         String note = (requested != null && !requested.equals(lang))
                 ? "No text for '" + requested + "' yet; showing English." : null;
 
+        String snapshotId=LocalOutputCache.key("insight-snapshot-v2"+(analysis==null?classifier.modelVersion():analysis.pipelineVersion())+json.writeValueAsString(Arrays.asList(req.ownerLanguage(),req.reviews())));
+        if(outputCache!=null) { var saved=outputCache.get(snapshotId,Dto.InsightsResponse.class); if(saved!=null) { progress.accept(req.reviews().size()); return saved; } }
         // 1. classify every review once
         List<Dto.Analysis> all = new ArrayList<>();
         for (Dto.ReviewIn r : req.reviews()) { all.add(analysis == null ? classifier.analyze(r) : analysis.analyze(r)); progress.accept(all.size()); }
@@ -81,13 +85,16 @@ public class InsightService {
                 findings(groups, "positive", analysed, lang, 3));
 
         String unreadNote = unread.isEmpty() ? null : texts.getOrEn(lang, "insights", "unread");
-        return new Dto.InsightsResponse(
+        var result=new Dto.InsightsResponse(
                 new Dto.Meta(all.size(), analysed, unread.size(), lang,
                         all.stream().filter(a -> !a.modelVersion().equals("translation-unavailable")).map(Dto.Analysis::modelVersion).findFirst().orElse("unavailable"), note,
                         (int)all.stream().filter(a -> a.translation()!=null && a.translation().status().equals("translated")).count(),
                         (int)all.stream().filter(a -> a.translation()!=null && a.translation().status().equals("failed")).count()),
                 new Dto.Quantitative(avg, dist, sentiment, langs, aspects, trend),
-                qual, new Dto.Attention(unread, unreadNote));
+                qual, new Dto.Attention(unread, unreadNote),null,snapshotId);
+        // Failed translations must remain retryable, not become a permanent snapshot.
+        if(outputCache!=null && result.meta().translationFailed()==0) outputCache.put(snapshotId,result);
+        return result;
     }
 
     public Dto.InsightsResponse withNarrative(Dto.InsightsRequest req) throws Exception {
@@ -96,7 +103,14 @@ public class InsightService {
     public Dto.InsightsResponse withNarrative(Dto.InsightsRequest req, java.util.function.IntConsumer progress) throws Exception {
         Dto.InsightsResponse base = build(req,progress);
         if (!req.includeNarrative()) return base;
-        return new Dto.InsightsResponse(base.meta(), base.quantitative(), base.qualitative(), base.attention(), llm.summarize(base));
+        return new Dto.InsightsResponse(base.meta(), base.quantitative(), base.qualitative(), base.attention(), llm.summarize(base,req.settings()),base.snapshotId());
+    }
+
+    public Dto.InsightsResponse summarizeSnapshot(Dto.SummaryRequest request) {
+        if(request==null || request.snapshotId()==null || !request.snapshotId().matches("[a-f0-9]{64}")) throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST,"Valid snapshot_id is required");
+        var base=outputCache.get(request.snapshotId(),Dto.InsightsResponse.class);
+        if(base==null) throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND,"Saved analysis expired. Refresh reviews first.");
+        return new Dto.InsightsResponse(base.meta(),base.quantitative(),base.qualitative(),base.attention(),llm.summarize(base,request.settings()),base.snapshotId());
     }
 
     private List<Dto.Finding> findings(Map<String, List<Ev>> groups, String sentiment,

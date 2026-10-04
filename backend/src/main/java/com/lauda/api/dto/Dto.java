@@ -35,7 +35,12 @@ public class Dto {
     // ---------- reply drafts ----------
     public record ReplyRequest(ReviewIn review,
             @JsonProperty("owner_language") String ownerLanguage,
-            @JsonProperty("business_name") String businessName) {}
+            @JsonProperty("business_name") String businessName,
+            @JsonProperty("business_context") Map<String,String> businessContext) {
+        public ReplyRequest(ReviewIn review,String owner,String business) { this(review,owner,business,Map.of()); }
+    }
+    public record Generation(String status, String source, String model, String digest,
+            @JsonProperty("prompt_version") String promptVersion, @JsonProperty("latency_ms") long latencyMs) {}
 
     public record Draft(String id, String label, String language, String text,
             @JsonProperty("owner_preview") String ownerPreview) {}
@@ -44,15 +49,29 @@ public class Dto {
             @JsonProperty("review_id") int reviewId,
             Analysis analysis, List<Draft> drafts, List<String> warnings,
             @JsonProperty("requires_approval") boolean requiresApproval,
-            @JsonProperty("model_version") String modelVersion) {}
+            @JsonProperty("model_version") String modelVersion, Generation generation) {
+        public ReplyResponse(int id,Analysis analysis,List<Draft> drafts,List<String> warnings,boolean approval,String version) {
+            this(id,analysis,drafts,warnings,approval,version,null);
+        }
+    }
 
     // ---------- insights ----------
     public record InsightsRequest(
             @JsonProperty("owner_language") String ownerLanguage, List<ReviewIn> reviews,
-            @JsonProperty("include_narrative") boolean includeNarrative) {
-        public InsightsRequest(String language, List<ReviewIn> reviews) { this(language, reviews, false); }
+            @JsonProperty("include_narrative") boolean includeNarrative, SummarySettings settings) {
+        public InsightsRequest(String language,List<ReviewIn> reviews,boolean narrative) { this(language,reviews,narrative,null); }
+        public InsightsRequest(String language, List<ReviewIn> reviews) { this(language, reviews, false,null); }
     }
 
+    public record SummarySettings(String length,String tone,String focus,String language) {
+        public static SummarySettings defaults() { return new SummarySettings("brief","professional","balanced","en"); }
+        public SummarySettings normalized() {
+            String l=length==null?"brief":length,t=tone==null?"professional":tone,f=focus==null?"balanced":focus,lang=language==null?"en":language;
+            if(!List.of("brief","standard").contains(l) || !List.of("plain","professional").contains(t) || !List.of("balanced","praise","concerns").contains(f) || lang.isBlank() || lang.length()>32) throw new IllegalArgumentException("Invalid summary settings");
+            return new SummarySettings(l,t,f,lang);
+        }
+    }
+    public record SummaryRequest(@JsonProperty("snapshot_id") String snapshotId,SummarySettings settings) {}
     public record Quote(@JsonProperty("review_id") int reviewId, String language,
                         Integer rating, String text, @JsonProperty("original_text") String originalText,
             @JsonProperty("translation_model") String translationModel) {
@@ -98,7 +117,9 @@ public class Dto {
             @JsonProperty("aspect_notes") List<NarrativeNote> aspectNotes, List<String> warnings) {}
     public record InsightJob(String id, String status, int total, int processed, InsightsResponse result, String error) {}
     public record InsightsResponse(Meta meta, Quantitative quantitative,
-                                   Qualitative qualitative, Attention attention, Narrative narrative) {
+                                   Qualitative qualitative, Attention attention, Narrative narrative,
+            @JsonProperty("snapshot_id") String snapshotId) {
+        public InsightsResponse(Meta meta,Quantitative quantitative,Qualitative qualitative,Attention attention,Narrative narrative) { this(meta,quantitative,qualitative,attention,narrative,null); }
         public InsightsResponse(Meta meta, Quantitative quantitative, Qualitative qualitative, Attention attention) {
             this(meta, quantitative, qualitative, attention, null);
         }

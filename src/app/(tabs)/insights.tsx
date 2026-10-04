@@ -6,8 +6,10 @@ import { Page, Card, Heading, Body, Muted, Button, colors } from "../../componen
 import { useStore } from "../../state/store";
 import { isDemoProfile } from "../../data/profile";
 import { AspectChart, MonthlyRatings, RatingDistribution, RatingOrbit, SentimentBreakdown } from "../../components/feedback-graphics";
+import { LanguagePicker } from "../../components/studio";
+import { replyLanguages } from "../../ai/review-replies";
 import type { Review } from "../../data/types";
-import { fetchInsights, insightsKey, type Finding } from "../../ai/insights-api";
+import { fetchInsights, fetchSummary, insightsKey, languageCode, normalizeSummarySettings, type SummarySettings, type Finding } from "../../ai/insights-api";
 
 export default function Insights() {
   const { data, update } = useStore();
@@ -15,7 +17,14 @@ export default function Insights() {
   const reviews = useMemo(() => (data?.reviews ?? []).filter(r => r.demo === demo), [data?.reviews, demo]);
   const language = data?.profile?.language ?? "English";
   const endpoint = data?.analysisEndpoint ?? "http://127.0.0.1:8080";
-  const key = useMemo(() => insightsKey(reviews, language, endpoint), [reviews, language, endpoint]);
+  const settings = normalizeSummarySettings(data?.summarySettings);
+  const corpusKey = useMemo(() => insightsKey(reviews, language, endpoint), [reviews, language, endpoint]);
+  const key = useMemo(() => insightsKey(reviews, language, endpoint, settings), [reviews, language, endpoint, settings]);
+  const [customizing, setCustomizing] = useState(false);
+  const [preferences, setPreferences] = useState<SummarySettings>(settings);
+  const savedCorpus = data?.insightsCache?.corpusKey === corpusKey || data?.insightsCache?.key === key;
+  const lastSaved = savedCorpus ? data?.insightsCache : undefined;
+  const snapshot = lastSaved?.result.snapshot_id;
   const currentKey = useRef(key);
   const updateRef = useRef(update);
   useEffect(() => { currentKey.current = key; updateRef.current = update; }, [key, update]);
@@ -29,26 +38,30 @@ export default function Insights() {
     void Promise.resolve().then(() => {
       if (controller.signal.aborted) return null;
       setBusy(true); setError("");
-      return fetchInsights(reviews, language, endpoint, controller.signal, value => { if (!controller.signal.aborted && currentKey.current === key) setProgress(value); });
+      const progressUpdate = (value: { processed: number; total: number }) => { if (!controller.signal.aborted && currentKey.current === key) setProgress(value); };
+      return snapshot ? fetchSummary(snapshot, reviews, settings, endpoint, controller.signal) : fetchInsights(reviews, language, endpoint, controller.signal, progressUpdate, settings);
     }).then(async result => {
       if (!result || controller.signal.aborted || currentKey.current !== key) return;
-      await updateRef.current(d => currentKey.current === key ? { ...d, insightsCache: { key, savedAt: new Date().toISOString(), result } } : d);
+      if (result.narrative?.status !== "generated" && lastSaved?.result.narrative?.status === "generated") throw new Error(result.narrative?.warnings.join(" ") || "Summary unavailable. Your previous overview is kept.");
+      await updateRef.current(d => currentKey.current === key ? { ...d, insightsCache: { key, corpusKey, settings, savedAt: new Date().toISOString(), result } } : d);
     }).catch(e => { if (!controller.signal.aborted) setError(e instanceof Error ? e.message : "Insights are unavailable."); }).finally(() => { if (!controller.signal.aborted) setBusy(false); });
     return () => { controller.abort(); };
-  }, [key, cached, reviews, language, endpoint, data?.analysisEndpoint]);
+  }, [key, cached, reviews, language, endpoint, data?.analysisEndpoint, settings, snapshot, corpusKey, lastSaved?.result.narrative?.status]);
   if (!data) return <Page title="Insights"><ActivityIndicator color={colors.accent} /><Muted>Loading your saved reviews…</Muted></Page>;
-  const result = saved?.result;
+  const result = (saved ?? lastSaved)?.result;
   const refresh = async () => {
     if (busy) return;
     setBusy(true); setError("");
     try {
-      const result = await fetchInsights(reviews, language, endpoint, undefined, setProgress);
-      if (currentKey.current === key) await update(d => currentKey.current === key ? { ...d, insightsCache: { key, savedAt: new Date().toISOString(), result } } : d);
+      const result = await fetchInsights(reviews, language, endpoint, undefined, setProgress, settings);
+      if (result.narrative?.status !== "generated" && lastSaved?.result.narrative?.status === "generated") throw new Error(result.narrative?.warnings.join(" ") || "Summary unavailable. Your previous overview is kept.");
+      if (currentKey.current === key) await update(d => currentKey.current === key ? { ...d, insightsCache: { key, corpusKey, settings, savedAt: new Date().toISOString(), result } } : d);
     } catch (e) { setError(e instanceof Error ? e.message : "Could not load insights."); }
     finally { setBusy(false); }
   };
   const average = result?.quantitative.average_rating ?? (reviews.length ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : null);
   const distribution = result?.quantitative.rating_distribution ?? Object.fromEntries([1,2,3,4,5].map(n => [String(n), reviews.filter(r => r.rating === n).length]));
+  const shownSettings = (saved ?? lastSaved)?.settings ?? settings;
   const narrative = result?.narrative?.status === "generated" ? result.narrative : null;
   const languageCount = new Set(reviews.map(r => r.language).filter(Boolean)).size;
   return <Page title="Insights" subtitle={data.profile?.name ?? "Your business"}>
@@ -56,8 +69,17 @@ export default function Insights() {
       <View style={styles.briefTop}><View style={styles.spark}><Ionicons name="sparkles" size={20} color="#C9F3E4" /></View><Text style={styles.eyebrow}>THE REVIEW BRIEF</Text><View style={styles.localPill}><View style={styles.localDot} /><Text style={styles.localText}>{narrative ? "Local AI" : "Overview"}</Text></View></View>
       <Text style={styles.briefTitle}>A little clarity.<Text style={{ color: "#BDF2DF" }}> A better next step.</Text></Text>
       {busy && !result ? <View style={{ gap: 12 }}><Text style={styles.briefText}>{progress.processed === progress.total ? "Your reviews are processed. Writing the local summary…" : `Bringing your reviews together · ${progress.processed} of ${progress.total}`}</Text><View style={styles.progressTrack}><View style={{ height: 4, width: `${progress.total ? progress.processed / progress.total * 100 : 0}%`, backgroundColor: "#BDF2DF" }} /></View><Text style={styles.briefMeta}>The first translation pass can take several minutes.</Text></View> : <Text style={styles.briefText}>{narrative?.summary ?? (result ? "Your counted feedback is ready below. The local AI overview is currently unavailable; your saved findings are still here." : reviews.length ? "Your review overview will appear here once the local service is connected." : "Import customer reviews to bring your business feedback into focus.")}</Text>}
-      <View style={styles.briefFooter}><Text style={styles.briefMeta}>{narrative ? "Qwen · English overview · saved locally" : "Private workspace · saved on this device"}</Text><Pressable accessibilityRole="button" accessibilityLabel="Refresh insights" accessibilityState={{ disabled: busy || !reviews.length }} disabled={busy || !reviews.length} onPress={() => void refresh()} style={styles.refresh}><Ionicons name={busy ? "hourglass-outline" : "refresh-outline"} size={18} color="white" /><Text style={styles.refreshText}>{busy ? "Updating" : "Refresh"}</Text></Pressable></View>
+      <View style={styles.briefFooter}><Text style={styles.briefMeta}>{narrative ? `Qwen · ${replyLanguages.find(l => languageCode(l) === shownSettings.language) ?? shownSettings.language} · saved locally` : "Private workspace · saved on this device"}</Text><Pressable accessibilityRole="button" accessibilityLabel="Refresh insights" accessibilityState={{ disabled: busy || !reviews.length }} disabled={busy || !reviews.length} onPress={() => void refresh()} style={styles.refresh}><Ionicons name={busy ? "hourglass-outline" : "refresh-outline"} size={18} color="white" /><Text style={styles.refreshText}>{busy ? "Updating" : "Refresh"}</Text></Pressable></View>
     </View>
+    <Button secondary label={customizing ? "Close summary settings" : "Customize summary"} onPress={() => { setPreferences(settings); setCustomizing(!customizing); }} />
+    {customizing && <Card><Heading>Your review brief</Heading><Muted>Change the wording and focus using the same saved analysis. Counts and charts stay grounded in your reviews.</Muted>
+      <Preference label="Length" value={preferences.length} options={["brief", "standard"]} onChange={length => setPreferences({ ...preferences, length: length as SummarySettings["length"] })} />
+      <Preference label="Tone" value={preferences.tone} options={["plain", "professional"]} onChange={tone => setPreferences({ ...preferences, tone: tone as SummarySettings["tone"] })} />
+      <Preference label="Focus" value={preferences.focus} options={["balanced", "praise", "concerns"]} onChange={focus => setPreferences({ ...preferences, focus: focus as SummarySettings["focus"] })} />
+      <LanguagePicker label="Summary language" languages={replyLanguages} value={replyLanguages.find(l => languageCode(l) === preferences.language) ?? "English"} onChange={l => setPreferences({ ...preferences, language: languageCode(l) })} />
+      <Button label="Apply summary settings" disabled={busy} onPress={() => { void update(d => ({ ...d, summarySettings: preferences })).then(() => setCustomizing(false)).catch(() => setError("Could not save summary settings.")); }} />
+    </Card>}
+    {result && !saved && <Muted>Showing the saved overview while your selected summary is prepared.</Muted>}
     {!!error && <Card><Body>{error}</Body></Card>}
     {Platform.OS !== "web" && !data.analysisEndpoint && <Button secondary label="Connect local review AI" onPress={() => router.push("/offline")} />}
     <View style={styles.metrics}>{[{ value: String(reviews.length), label: "Reviews", icon: "chatbubbles-outline" as const },{ value: String(languageCount), label: "Languages", icon: "globe-outline" as const },{ value: result ? String(result.meta.analysed) : "—", label: "Included", icon: "checkmark-circle-outline" as const }].map(m => <View key={m.label} style={styles.metric}><Ionicons name={m.icon} size={17} color={colors.accent} /><Text style={styles.metricValue}>{m.value}</Text><Text style={styles.small}>{m.label}</Text></View>)}</View>
@@ -76,11 +98,14 @@ export default function Insights() {
       {!!result.attention.unread_review_ids.length && <Card><SectionTitle title="A closer look" icon="scan-outline" /><Body>{result.meta.unread} reviews need human checking.</Body><Text style={styles.small}>They are processed, but excluded from aspect findings until the model can identify reliable themes.</Text>{result.attention.unread_review_ids.slice(0,3).map(id => <Pressable key={id} accessibilityRole="button" onPress={() => router.push(`/reviews/${id}`)} style={styles.reviewLink}><Text style={styles.reviewLinkText}>{reviews.find(r => r.id === id)?.guest ?? "Read review"}</Text><Ionicons name="arrow-forward" size={17} color={colors.accent} /></Pressable>)}</Card>}
       {!!result.meta.translation_failed && <Muted>{result.meta.translation_failed} translations failed. Start the local NLLB service and refresh.</Muted>}
       {!narrative && <Muted>{result.narrative?.warnings.join(" ")}</Muted>}
-      <Text style={styles.small}>Updated {new Date(saved!.savedAt).toLocaleString()} · {narrative ? "Local Qwen overview. " : ""}Verify model findings against original reviews.</Text>
+      <Text style={styles.small}>Updated {new Date((saved ?? lastSaved)!.savedAt).toLocaleString()} · {narrative ? "Local Qwen overview. " : ""}Verify model findings against original reviews.</Text>
     </>}
     {demo && <Text style={styles.small}>Synthetic demo reviews · 15 scenarios across ten languages. Not live customer feedback or independent customer observations.</Text>}
     <Button secondary label="Explore all reviews" onPress={() => router.navigate("/reviews")} />
   </Page>;
+}
+function Preference({ label, value, options, onChange }: { label: string; value: string; options: string[]; onChange: (value: string) => void }) {
+  return <View style={{ gap: 8 }}><Muted>{label}</Muted><View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>{options.map(option => <Pressable key={option} accessibilityRole="button" accessibilityState={{ selected: value === option }} accessibilityLabel={`${label}: ${option}`} onPress={() => onChange(option)} style={{ minHeight: 44, justifyContent: "center", paddingHorizontal: 14, borderRadius: 12, backgroundColor: value === option ? colors.accent : colors.lavender }}><Text style={{ color: value === option ? "white" : colors.accent, fontSize: 13, fontWeight: "600" }}>{option[0].toUpperCase() + option.slice(1)}</Text></Pressable>)}</View></View>;
 }
 function Legend({ color, label }: { color: string; label: string }) { return <View style={styles.legend}><View style={[styles.coverageDot,{ backgroundColor: color }]} /><Text style={styles.small}>{label}</Text></View>; }
 function SectionTitle({ title, icon, tone = colors.accent }: { title: string; icon: React.ComponentProps<typeof Ionicons>["name"]; tone?: string }) { return <View style={styles.sectionTitle}><Ionicons name={icon} size={18} color={tone} /><Heading>{title}</Heading></View>; }

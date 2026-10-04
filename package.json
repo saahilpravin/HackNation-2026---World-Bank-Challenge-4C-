@@ -41,7 +41,10 @@
     "translate:offline": "python3 scripts/start-translation.py --offline",
     "translate:setup": "python3 scripts/start-translation.py --setup-only",
     "ai:llm": "python3 scripts/start-small-llm.py",
-    "ai:backend": "python3 scripts/start-review-ai.py --offline --llm"
+    "ai:backend": "python3 scripts/start-review-ai.py --offline --llm",
+    "demo:offline": "python3 scripts/start-local-demo.py",
+    "ai:evaluate": "python3 scripts/evaluate-local-replies.py",
+    "ai:build": "python3 scripts/start-review-ai.py --build-only"
   },
   "private": true
 }

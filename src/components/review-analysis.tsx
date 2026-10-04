@@ -10,10 +10,13 @@ import type { Review } from "../data/types";
 export function ReviewAnalysis({ review, onUse }: { review: Review; onUse: (draft: DraftExample) => void }) {
   const { data, update } = useStore(); const endpoint = data?.analysisEndpoint ?? "http://127.0.0.1:8080";
   const language = data?.profile?.language ?? "English", business = data?.profile?.name ?? "Your business";
-  const key = reviewAnalysisKey(review, endpoint, language, business);
+  const context = { experience: data?.profile?.experience ?? "", hours: data?.profile?.hours ?? "" };
+  const key = reviewAnalysisKey(review, endpoint, language, business, context);
   const saved = data?.reviewAnalysisCache?.find(c => c.key === key); const [busy, setBusy] = useState(false), [error, setError] = useState("");
   const [examplesBusy, setExamplesBusy] = useState(false), [evidence, setEvidence] = useState(false);
   const updateRef = useRef(update); const keyRef = useRef(key); useEffect(() => { updateRef.current = update; keyRef.current = key; }, [update, key]);
+  const examplesRequest = useRef<AbortController | null>(null);
+  useEffect(() => { void Promise.resolve().then(() => setExamplesBusy(false)); return () => { examplesRequest.current?.abort(); }; }, [key]);
   const cached = !!saved;
   useEffect(() => {
     if (cached || (Platform.OS !== "web" && !data?.analysisEndpoint)) return;
@@ -24,9 +27,11 @@ export function ReviewAnalysis({ review, onUse }: { review: Review; onUse: (draf
     return () => controller.abort();
   }, [key, cached, review, endpoint, data?.analysisEndpoint]);
   const loadExamples = async () => {
+    if (examplesBusy) return;
+    const controller = new AbortController(); examplesRequest.current = controller;
     setExamplesBusy(true); setError("");
-    try { const examples = await fetchReviewExamples(review, endpoint, language, business); if (keyRef.current === key) await updateRef.current(d => ({ ...d, reviewAnalysisCache: saveAnalysisCache(d.reviewAnalysisCache, { key, savedAt: new Date().toISOString(), analysis: examples.analysis, examples }) })); }
-    catch(e) { setError(e instanceof Error ? e.message : "Examples unavailable."); } finally { setExamplesBusy(false); }
+    try { const examples = await fetchReviewExamples(review, endpoint, language, business, controller.signal, context); if (!controller.signal.aborted && keyRef.current === key) await updateRef.current(d => ({ ...d, reviewAnalysisCache: saveAnalysisCache(d.reviewAnalysisCache, { key, savedAt: new Date().toISOString(), analysis: examples.analysis, examples }) })); }
+    catch(e) { if (!controller.signal.aborted) setError(e instanceof Error ? e.message : "Examples unavailable."); } finally { if (!controller.signal.aborted) setExamplesBusy(false); }
   };
   const analysis = saved?.analysis; const hits = [...(analysis?.aspects ?? [])].sort((a,b) => b.score - a.score || a.aspect.localeCompare(b.aspect)).slice(0,3);
   return <>
@@ -46,9 +51,11 @@ export function ReviewAnalysis({ review, onUse }: { review: Review; onUse: (draf
       {!!error && <Muted>{error}</Muted>}
       {!analysis && !busy && <Button secondary label="Connect review analysis" onPress={() => router.push("/offline")} />}
     </Card>
-    <Card><View style={{flexDirection:"row",alignItems:"center",gap:10}}><Ionicons name="create-outline" size={19} color={colors.accent}/><Heading>Reply inspiration</Heading></View><Text style={styles.small}>Optional templates based on detected aspects. Make the words your own before approval.</Text>
-      {!saved?.examples && <Button secondary label={examplesBusy ? "Loading examples…" : "Show example responses"} disabled={examplesBusy} onPress={() => void loadExamples()} />}
+    <Card><View style={{flexDirection:"row",alignItems:"center",gap:10}}><Ionicons name="create-outline" size={19} color={colors.accent}/><Heading>Reply inspiration</Heading></View><Text style={styles.small}>Local AI drafts based on this review. Check the details and make the words your own.</Text>
+      {!saved?.examples && <Button secondary label={examplesBusy ? "Writing your drafts…" : "Generate response ideas"} disabled={examplesBusy} onPress={() => void loadExamples()} />}
+      {saved?.examples && <Badge label={saved.examples.generation?.status === "generated" ? "Qwen · generated locally" : "Authored template suggestion"} />}
       {saved?.examples?.warnings.map((w,i) => <Muted key={i}>{w}</Muted>)}
+      {saved?.examples && <Button secondary label={examplesBusy ? "Writing your drafts…" : "Reload response ideas"} disabled={examplesBusy} onPress={() => void loadExamples()} />}
       {saved?.examples?.drafts.map(d => <View key={d.id} style={styles.quote}><Badge label={`${d.label} · ${d.language}`} /><Body>{d.text}</Body><Button secondary label="Use as my draft" onPress={() => onUse(d)} /></View>)}
     </Card>
   </>;

@@ -60,3 +60,24 @@ test("unknown source language is preserved and traditional Chinese keeps its scr
   assert.equal(insightsPayload([{...reviews[0],language:undefined}],"English").reviews[0].language,"unknown");
   assert.equal(languageCode("Chinese (Traditional)"), "zho_Hant");
 });
+test("summary preferences invalidate narration cache without altering review inputs", async () => {
+  const { defaultSummarySettings, fetchSummary } = await import("../src/ai/insights-api.ts");
+  const settings = { ...defaultSummarySettings, focus: "concerns" as const };
+  assert.notEqual(insightsKey(reviews,"English","http://localhost:8080"),insightsKey(reviews,"English","http://localhost:8080",settings));
+  assert.deepEqual(insightsPayload(reviews,"English",settings).reviews,insightsPayload(reviews,"English").reviews);
+  const original = globalThis.fetch, snapshot = "a".repeat(64);
+  try {
+    globalThis.fetch = async (url, options) => {
+      assert.equal(url,"http://localhost:8080/v1/insights/summary");
+      const body = JSON.parse(String(options?.body)); assert.equal(body.snapshot_id,snapshot); assert.equal(body.settings.focus,"concerns"); assert.equal(body.reviews,undefined);
+      return new Response(JSON.stringify({...response(),snapshot_id:snapshot}));
+    };
+    assert.equal((await fetchSummary(snapshot,reviews,settings,"http://localhost:8080")).snapshot_id,snapshot);
+    globalThis.fetch = async () => new Response(JSON.stringify({...response(),snapshot_id:"b".repeat(64)}));
+    await assert.rejects(fetchSummary(snapshot,reviews,settings,"http://localhost:8080"),/did not match/);
+  } finally { globalThis.fetch = original; }
+});
+test("reordered review arrays preserve snapshot evidence identity", () => {
+  assert.deepEqual(insightsPayload([...reviews].reverse(),"English").reviews,insightsPayload(reviews,"English").reviews);
+  assert.equal(decodeInsights(response(),[...reviews].reverse()).qualitative.strengths[0].quotes[0].review_id,"r15");
+});

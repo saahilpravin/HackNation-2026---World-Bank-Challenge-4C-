@@ -46,6 +46,7 @@ function ReplyForm() {
   const [to, setTo] = useState<ReplyLanguage>(validLanguage(savedDraft?.customerLanguage ?? saved?.customerLanguage ?? review?.language));
   const [draft, setDraft] = useState(savedDraft?.draft ?? saved?.draft ?? "");
   const [translated, setTranslated] = useState(savedDraft?.translatedText ?? (savedDraft ? "" : saved?.translatedText ?? ""));
+  const [generation, setGeneration] = useState(savedDraft?.generation ?? saved?.generation);
   const [source, setSource] = useState<"manual" | "local-template" | "on-device-model" | "local-laptop-model">(savedDraft?.source ?? saved?.source ?? "manual");
   const [modelVersion, setModelVersion] = useState<string | null>(savedDraft?.modelVersion ?? saved?.modelVersion ?? null);
   const [latencyMs, setLatencyMs] = useState<number | undefined>(savedDraft?.latencyMs ?? saved?.latencyMs);
@@ -70,7 +71,7 @@ function ReplyForm() {
   const saveDraft = async () => {
     if (!review || busy || !draft.trim()) return;
     setBusy(true);
-    try { await update(d => ({...d,reviewDrafts:[...(d.reviewDrafts ?? []).filter(r => r.reviewId !== id),{reviewId:id,draft,writingLanguage:from,customerLanguage:to,translatedText:key === replyKey(draft, from, to) ? translated : undefined,source,modelVersion,latencyMs,savedAt:new Date().toISOString()}]})); setStatus("Draft saved on this device. Come back whenever you’re ready."); }
+    try { await update(d => ({...d,reviewDrafts:[...(d.reviewDrafts ?? []).filter(r => r.reviewId !== id),{reviewId:id,draft,writingLanguage:from,customerLanguage:to,translatedText:key === replyKey(draft, from, to) ? translated : undefined,source,modelVersion,latencyMs,generation,savedAt:new Date().toISOString()}]})); setStatus("Draft saved on this device. Come back whenever you’re ready."); }
     catch { setStatus("Could not save your draft. Please try again."); }
     finally { setBusy(false); }
   };
@@ -78,7 +79,7 @@ function ReplyForm() {
     if (busy || translating || !translated.trim() || key !== replyKey(draft, from, to) || !review) return;
     setBusy(true);
     try {
-      await update(d => ({ ...d, reviewDrafts: d.reviewDrafts?.filter(r => r.reviewId !== id), reviewReplies: [...(d.reviewReplies ?? []).filter(r => r.reviewId !== id), { reviewId: id, draft, writingLanguage: from, customerLanguage: to, translatedText: translated.trim(), source, modelVersion, latencyMs, approvedAt: new Date().toISOString() }] }));
+      await update(d => ({ ...d, reviewDrafts: d.reviewDrafts?.filter(r => r.reviewId !== id), reviewReplies: [...(d.reviewReplies ?? []).filter(r => r.reviewId !== id), { reviewId: id, draft, writingLanguage: from, customerLanguage: to, translatedText: translated.trim(), source, modelVersion, latencyMs, generation, approvedAt: new Date().toISOString() }] }));
       setStatus("Approved reply saved on this device. Nothing has been posted to a review platform.");
     } catch { setStatus("Could not save. Please try again; your response is still here."); }
     finally { setBusy(false); }
@@ -102,13 +103,14 @@ function ReplyForm() {
       if (draft.trim()) { setStatus("Your existing draft is kept. Clear it first to use an example response."); return; }
       const actualLanguage = replyLanguages.find(l => languageCode(l) === example.language);
       if (!actualLanguage) { setStatus("This example’s language is unavailable in the editor. Copy and check it manually."); return; }
-      invalidate(); setFrom(actualLanguage); setDraft(example.text); setSource("local-template"); setStatus(`Example loaded in ${actualLanguage}. Edit it, then translate and approve.`);
+      invalidate(); setFrom(actualLanguage); setDraft(example.text); setGeneration(example.generation); setSource(example.generation?.status === "generated" ? "local-laptop-model" : "local-template"); setStatus(`Example loaded in ${actualLanguage}. Edit it, then translate and approve.`);
     }} />
     <Card>
       <Heading>Respond to review</Heading>
       <LanguagePicker label="Your writing language" languages={replyLanguages} value={from} onChange={l => { invalidate(); setFrom(validLanguage(l)); }} disabled={busy} />
       <LanguagePicker label="Customer’s language" languages={replyLanguages} value={to} onChange={l => { invalidate(); setTo(validLanguage(l)); }} disabled={busy} />
       <Heading>Write your response</Heading>
+      {generation && <Muted>{generation.status === "generated" ? `Started from a local ${generation.model} draft · edited text remains yours` : "Started from an authored template"}</Muted>}
       <Field label={`Your response (${from})`} value={draft} onChange={v => { if (!busy) { invalidate(); setDraft(v); } }} multiline />
       {savedDraft && <Muted>{savedDraft.draft === draft && savedDraft.writingLanguage === from && savedDraft.customerLanguage === to ? "Draft saved on this device" : "Unsaved edits · save your draft before leaving"}</Muted>}
       <Button secondary label={busy ? "Saving…" : "Save draft for later"} disabled={busy || translating || !draft.trim()} onPress={() => void saveDraft()} />

@@ -33,6 +33,14 @@ class InsightsLlmServiceTest {
             var changed = service.summarize(changedScope); assertTrue(changed.summary().startsWith("Across 2 reviews, 1 have usable aspect findings and 1 need checking.")); assertEquals(2,calls.get()); }
         finally { server.stop(0); }
     }
+    @Test void settingsControlSentenceCountAndFirstTheme() throws Exception {
+        var service=new InsightsLlmService(false,"http://127.0.0.1:1","model","digest",1);
+        var settings=new Dto.SummarySettings("standard","plain","concerns","en");
+        String valid="Concerns about Getting there appear in reviews. Directions need clearer information. Tour guide receives praise. Visitors appreciate helpful explanations.";
+        service.validateCustomization(valid,settings,List.of("Tour guide"),List.of("Getting there"));
+        assertThrows(IllegalArgumentException.class,() -> service.validateCustomization("Tour guide receives praise. Getting there raises concerns.",settings,List.of("Tour guide"),List.of("Getting there")));
+        assertThrows(IllegalArgumentException.class,() -> new Dto.SummarySettings("invented","plain","balanced","en").normalized());
+    }
     @Test void unavailableRuntimeAndNoEvidencePreserveBaseFindings() throws Exception {
         var service = new InsightsLlmService(true,"http://127.0.0.1:1","qwen3:0.6b","digest",1);
         assertEquals("not-ready", service.summarize(base()).status());

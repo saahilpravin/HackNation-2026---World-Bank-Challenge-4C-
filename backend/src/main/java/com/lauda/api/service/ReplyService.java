@@ -12,6 +12,7 @@ public class ReplyService {
     private final ClassifierService classifier;
     private final Texts texts;
     private ReviewAnalysisService analysis;
+    @org.springframework.beans.factory.annotation.Autowired private ReplyLlmService generator;
 
     public ReplyService(ClassifierService classifier, Texts texts) {
         this.classifier = classifier;
@@ -23,7 +24,10 @@ public class ReplyService {
     public Dto.ReplyResponse draft(Dto.ReplyRequest req) throws Exception {
         Dto.ReviewIn rv = req.review();
         Dto.Analysis a = analysis == null ? classifier.analyze(rv) : analysis.analyze(rv);
+        ReplyLlmService.Result generated=generator==null?null:generator.generate(req,a);
+        if(generated!=null && !generated.drafts().isEmpty()) return new Dto.ReplyResponse(rv.id(),a,generated.drafts(),generated.warnings(),true,a.modelVersion(),generated.generation());
         List<String> warnings = new ArrayList<>();
+        if(generated!=null) warnings.addAll(generated.warnings());
 
         String lang = texts.canReply(rv.language()) ? rv.language() : "en";
         if (rv.language() != null && !lang.equals(rv.language()))
@@ -43,7 +47,7 @@ public class ReplyService {
                     compose(lang, a, detailed, req.businessName()),
                     preview ? compose(owner, a, detailed, req.businessName()) : null));
         }
-        return new Dto.ReplyResponse(rv.id(), a, drafts, warnings, true, a.modelVersion());
+        return new Dto.ReplyResponse(rv.id(), a, drafts, warnings, true, a.modelVersion(),generated==null?new Dto.Generation("disabled","template",null,null,"templates-v1",0):generated.generation());
     }
 
     private String compose(String lang, Dto.Analysis a, boolean detailed, String business) {
